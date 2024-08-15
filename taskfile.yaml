@@ -65,17 +65,19 @@ tasks:
       VCPKG_BUILDTREES_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "buildtrees" }}'
       VCPKG_DOWNLOADS_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "downloads" }}'
       VCPKG_INSTALL_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "install" }}'
-      VCPKG_ASSET_SOURCES: '{{ joinPath .VCPKG_CACHE_ROOT "assets" }}'
+      VCPKG_ASSET_SOURCES_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "assets" }}'
       VCPKG_PACKAGES_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "packages" }}'
+      VCPKG_BINARY_CACHE_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "archives" }}'
     env:
       VCPKG_ROOT: '{{joinPath .TASKFILE_DIR "cmake" "vcpkg"}}'
-      X_VCPKG_ASSET_SOURCES: 'x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES}}/,,readwrite'
-      VCPKG_DEFAULT_BINARY_CACHE: '{{ joinPath .VCPKG_CACHE_ROOT "archives" }}'
-      VCPKG_DEFAULT_INSTALL_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "install" }}'
+      X_VCPKG_ASSET_SOURCES: 'x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES_ROOT}}/,,readwrite'
+      VCPKG_DOWNLOADS: '{{ .VCPKG_DOWNLOADS_ROOT }}'
+      VCPKG_DEFAULT_BINARY_CACHE: '{{ .VCPKG_BINARY_CACHE_ROOT }}'
+      VCPKG_DEFAULT_INSTALL_ROOT: '{{ .VCPKG_INSTALL_ROOT }}'
     cmds:
       - cmd: |
           {{.RUN}} "{{ fromSlash .VCPKG_EXE }}" \
-            --vcpkg-root "{{joinPath .TASKFILE_DIR "cmake" "vcpkg "}}" \
+            --vcpkg-root "{{ fromSlash .VCPKG_ROOT }}" \
             --downloads-root="{{ fromSlash .VCPKG_DOWNLOADS_ROOT }}" \
             --x-buildtrees-root="{{ fromSlash .VCPKG_BUILDTREES_ROOT }}" \
             --x-install-root="{{ fromSlash .VCPKG_INSTALL_ROOT }}" \
@@ -84,7 +86,14 @@ tasks:
 
   vcpkg-integrate:
     deps: [vcpkg-download]
-    internal: true
+    sources:
+      - vcpkg.json
+    cmds:
+      - task: vcpkg
+        vars: { VCPKG_ARGS: "integrate install" }
+
+  vcpkg-install:
+    deps: [vcpkg-download]
     sources:
       - vcpkg.json
     generates:
@@ -93,8 +102,6 @@ tasks:
       - ./vcpkg_installed/*-*/lib/*.a
       - ./vcpkg_installed/*-*/include/**/*.h
     cmds:
-      - task: vcpkg
-        vars: { VCPKG_ARGS: "integrate install" }
       - task: vcpkg
         vars: { VCPKG_ARGS: "install --debug --keep-going" }
 
@@ -126,14 +133,35 @@ tasks:
 
   build:
     deps: [vcpkg-integrate]
+    vars:
+      VCPKG_BUILDTREES_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "buildtrees" }}'
+      VCPKG_DOWNLOADS_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "downloads" }}'
+      VCPKG_INSTALL_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "install" }}'
+      VCPKG_ASSET_SOURCES_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "assets" }}'
+      VCPKG_PACKAGES_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "packages" }}'
+      VCPKG_BINARY_CACHE_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "archives" }}'
+    env:
+      VCPKG_ROOT: '{{joinPath .TASKFILE_DIR "cmake" "vcpkg"}}'
+      X_VCPKG_ASSET_SOURCES: 'x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES_ROOT}}/,,readwrite'
+      VCPKG_DOWNLOADS: '{{ .VCPKG_DOWNLOADS_ROOT }}'
+      VCPKG_DEFAULT_BINARY_CACHE: '{{ .VCPKG_BINARY_CACHE_ROOT }}'
+      VCPKG_DEFAULT_INSTALL_ROOT: '{{ .VCPKG_INSTALL_ROOT }}'
     cmds:
+      - cmd: cmd.exe /D /C rmdir /s /q "{{joinPath .TASKFILE_DIR ".build" | fromSlash}}"
+        silent: true
+        ignore_error: true
       - cmd: |
           cmake \
+            -DWITH_XC_ALL=ON -DWITH_TESTS=OFF -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="{{joinPath .TASKFILE_DIR "cmake" "vcpkg" "scripts" "buildsystems" "vcpkg.cmake" | toSlash }}" \
+            -DX_VCPKG_ASSET_SOURCES="x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES_ROOT}}/,,readwrite" \
+            -DX_VCPKG_APPLOCAL_DEPS_INSTALL=ON \
             -B .build \
             -S "{{.TASKFILE_DIR}}" \
-            -DWITH_XC_ALL=ON \
-            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-      - cmd: cmake --build .build
+            -G "Visual Studio 17 2022" -A x64 \
+      - cmd: |
+          cmake --build .build \
+            --no-warn-unused-cli --compile-no-warning-as-error --log-level=VERBOSE --debug-output
 
   make:
     deps: [python-venv]
