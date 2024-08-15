@@ -22,30 +22,30 @@ KeePassXC has numerous features for novice and power users alike. Our goal is to
 
 ### Basic
 
-* Create, open, and save databases in the KDBX format (KeePass-compatible with KDBX4 and KDBX3)
-* Store sensitive information in entries that are organized by groups
-* Search for entries
-* Password generator
-* Auto-Type passwords into applications
-* Browser integration with Google Chrome, Mozilla Firefox, Microsoft Edge, Chromium, Vivaldi, Brave, and Tor-Browser
-* Entry icon download
-* Import databases from CSV, 1Password, and KeePass1 formats
+- Create, open, and save databases in the KDBX format (KeePass-compatible with KDBX4 and KDBX3)
+- Store sensitive information in entries that are organized by groups
+- Search for entries
+- Password generator
+- Auto-Type passwords into applications
+- Browser integration with Google Chrome, Mozilla Firefox, Microsoft Edge, Chromium, Vivaldi, Brave, and Tor-Browser
+- Entry icon download
+- Import databases from CSV, 1Password, and KeePass1 formats
 
 ### Advanced
 
-* Database reports (password health, HIBP, and statistics)
-* Database export to CSV and HTML formats
-* TOTP storage and generation
-* Field references between entries
-* File attachments and custom attributes
-* Entry history and data restoration
-* YubiKey/OnlyKey challenge-response support
-* Command line interface (keepassxc-cli)
-* Auto-Open databases
-* KeeShare shared databases (import, export, and synchronize)
-* SSH Agent integration
-* FreeDesktop.org Secret Service (replace Gnome keyring, etc.)
-* Additional encryption choices: Twofish and ChaCha20
+- Database reports (password health, HIBP, and statistics)
+- Database export to CSV and HTML formats
+- TOTP storage and generation
+- Field references between entries
+- File attachments and custom attributes
+- Entry history and data restoration
+- YubiKey/OnlyKey challenge-response support
+- Command line interface (`keepassxc-cli`)
+- Auto-Open databases
+- KeeShare shared databases (import, export, and synchronize)
+- SSH Agent integration
+- FreeDesktop.org Secret Service (replace Gnome keyring, etc.)
+- Additional encryption choices: `Twofish` and `ChaCha20`
 
 For a full list of changes, read the [CHANGELOG](CHANGELOG.md) document. \
 For a full list of keyboard shortcuts, see [KeyboardShortcuts.adoc](./docs/topics/KeyboardShortcuts.adoc)
