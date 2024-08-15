@@ -7,6 +7,11 @@ vars:
   VCPKG_BOOTSTRAP_BAT: "{{.TASKFILE_DIR}}/cmake/vcpkg/bootstrap-vcpkg.bat"
   VCPKG_BOOTSTRAP_SH: "{{.TASKFILE_DIR}}/cmake/vcpkg/bootstrap-vcpkg.sh"
   VCPKG_EXE: "{{.TASKFILE_DIR}}/cmake/vcpkg/vcpkg.exe"
+
+  VCPKG_CACHE_ROOT_WINDOWS: "m:\\cache\\vcpkg-data"
+  VCPKG_CACHE_ROOT_UNIX: "/tmp/vcpkg"
+  VCPKG_CACHE_ROOT: '{{if eq OS "windows"}}{{.VCPKG_CACHE_ROOT_WINDOWS}}{{else}}{{.VCPKG_CACHE_ROOT_UNIX}}{{end}}'
+
   BUILD_DIR_NAME: >-
     build
   OUTPUT_EXE_PATH: >-
@@ -54,11 +59,32 @@ tasks:
           cmd.exe /D /E:ON /C \
             start "taskfile-run" /D "{{joinPath .TASKFILE_DIR "bin"}}" "{{joinPath .TASKFILE_DIR .OUTPUT_EXE_PATH}}"
 
+  vcpkg:
+    deps: [vcpkg-download]
+    vars:
+      VCPKG_BUILDTREES_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "buildtrees" }}'
+      VCPKG_DOWNLOADS_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "downloads" }}'
+      VCPKG_INSTALL_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "install" }}'
+      VCPKG_ASSET_SOURCES: '{{ joinPath .VCPKG_CACHE_ROOT "assets" }}'
+      VCPKG_PACKAGES_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "packages" }}'
+    env:
+      VCPKG_ROOT: '{{joinPath .TASKFILE_DIR "cmake" "vcpkg"}}'
+      X_VCPKG_ASSET_SOURCES: 'x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES}}/,,readwrite'
+      VCPKG_DEFAULT_BINARY_CACHE: '{{ joinPath .VCPKG_CACHE_ROOT "archives" }}'
+      VCPKG_DEFAULT_INSTALL_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "install" }}'
+    cmds:
+      - cmd: |
+          {{.RUN}} "{{ fromSlash .VCPKG_EXE }}" \
+            --vcpkg-root "{{joinPath .TASKFILE_DIR "cmake" "vcpkg "}}" \
+            --downloads-root="{{ fromSlash .VCPKG_DOWNLOADS_ROOT }}" \
+            --x-buildtrees-root="{{ fromSlash .VCPKG_BUILDTREES_ROOT }}" \
+            --x-install-root="{{ fromSlash .VCPKG_INSTALL_ROOT }}" \
+            --x-packages-root="{{ fromSlash .VCPKG_PACKAGES_ROOT }}" \
+            {{coalesce .VCPKG_ARGS .CLI_ARGS}}
+
   vcpkg-integrate:
     deps: [vcpkg-download]
     internal: true
-    env:
-      VCPKG_ROOT: '{{joinPath .TASKFILE_DIR "cmake" "vcpkg"}}'
     sources:
       - vcpkg.json
     generates:
@@ -67,15 +93,10 @@ tasks:
       - ./vcpkg_installed/*-*/lib/*.a
       - ./vcpkg_installed/*-*/include/**/*.h
     cmds:
-      - cmd: |
-          {{.RUN}} "{{ fromSlash .VCPKG_EXE }}" \
-            --vcpkg-root "{{joinPath .TASKFILE_DIR "cmake" "vcpkg "}}" \
-            integrate install
-      - cmd: |
-          {{.RUN}} "{{ fromSlash .VCPKG_EXE }}" \
-            --vcpkg-root "{{joinPath .TASKFILE_DIR "cmake" "vcpkg "}}" \
-            install \
-              --debug --keep-going
+      - task: vcpkg
+        vars: { VCPKG_ARGS: "integrate install" }
+      - task: vcpkg
+        vars: { VCPKG_ARGS: "install --debug --keep-going" }
 
   vcpkg-download:
     deps: [git-submodule-init]
