@@ -1,0 +1,4 @@
+[submodule "vcpkg"]
+	path = cmake/vcpkg
+	url = https://github.com/microsoft/vcpkg.git
+	branch = master
