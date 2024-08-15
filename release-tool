@@ -61,7 +61,7 @@ printUsage() {
     local cmd
     if [ -z "$1" ] || [ "help" == "$1" ]; then
         cmd="COMMAND"
-    elif [ "check" == "$1" ] || [ "merge" == "$1" ] || [ "build" == "$1" ] || [ "gpgsign" == "$1" ] || \
+    elif [ "check" == "$1" ] || [ "merge" == "$1" ] || [ "build" == "$1" ] || [ "gpgsign" == "$1" ] ||
         [ "appsign" == "$1" ] || [ "notarize" == "$1" ] || [ "appimage" == "$1" ] || [ "i18n" == "$1" ]; then
         cmd="$1"
     else
@@ -72,7 +72,7 @@ printUsage() {
     printf "\e[1mUsage:\e[0m $(basename "$0") $cmd [OPTIONS, ...]\n"
 
     if [ "COMMAND" == "$cmd" ]; then
-        cat << EOF
+        cat <<EOF
 
 Commands:
   check      Perform a dry-run check, nothing is changed
@@ -85,7 +85,7 @@ Commands:
   i18n       Update translation files and pull from or push to Transifex
 EOF
     elif [ "merge" == "$cmd" ]; then
-        cat << EOF
+        cat <<EOF
 
 Merge release branch into main branch and create release tags
 
@@ -101,7 +101,7 @@ Options:
   -h, --help           Show this help
 EOF
     elif [ "build" == "$cmd" ]; then
-        cat << EOF
+        cat <<EOF
 
 Build and package binary release from sources
 
@@ -139,7 +139,7 @@ Options:
   -h, --help              Show this help
 EOF
     elif [ "gpgsign" == "$cmd" ]; then
-        cat << EOF
+        cat <<EOF
 
 Sign previously compiled release packages with GPG
 
@@ -149,7 +149,7 @@ Options:
   -h, --help         Show this help
 EOF
     elif [ "appsign" == "$cmd" ]; then
-        cat << EOF
+        cat <<EOF
 
 Sign binaries with code signing certificates on Windows and macOS
 
@@ -162,7 +162,7 @@ Options:
   -h, --help         Show this help
 EOF
     elif [ "notarize" == "$cmd" ]; then
-        cat << EOF
+        cat <<EOF
 
 Submit macOS application DMG for notarization
 
@@ -174,7 +174,7 @@ Options:
   -h, --help         Show this help
 EOF
     elif [ "appimage" == "$cmd" ]; then
-        cat << EOF
+        cat <<EOF
 
 Generate Linux AppImage from 'make install' AppDir
 
@@ -193,7 +193,7 @@ Options:
   -h, --help           Show this help
 EOF
     elif [ "i18n" == "$cmd" ]; then
-        cat << EOF
+        cat <<EOF
 
 Update translation files and pull from or push to Transifex
 
@@ -234,15 +234,15 @@ init() {
 
     ORIG_CWD="$(pwd)"
     SRC_DIR="$(realpath "$SRC_DIR")"
-    cd "$SRC_DIR" > /dev/null 2>&1
-    ORIG_BRANCH="$(git rev-parse --abbrev-ref HEAD 2> /dev/null)"
+    cd "$SRC_DIR" >/dev/null 2>&1
+    ORIG_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
     cd "$ORIG_CWD"
 }
 
 cleanup() {
     logInfo "Checking out original branch..."
     if [ "" != "$ORIG_BRANCH" ]; then
-        git checkout "$ORIG_BRANCH" > /dev/null 2>&1
+        git checkout "$ORIG_BRANCH" >/dev/null 2>&1
     fi
     logInfo "Leaving source directory..."
     cd "$ORIG_CWD"
@@ -255,7 +255,7 @@ exitError() {
 }
 
 cmdExists() {
-    command -v "$1" &> /dev/null
+    command -v "$1" &>/dev/null
 }
 
 checkSourceDirExists() {
@@ -289,7 +289,7 @@ checkWorkingTreeClean() {
 }
 
 checkSourceBranchExists() {
-    if ! git rev-parse "$SOURCE_BRANCH" > /dev/null 2>&1; then
+    if ! git rev-parse "$SOURCE_BRANCH" >/dev/null 2>&1; then
         exitError "Source branch '$SOURCE_BRANCH' does not exist!"
     fi
 }
@@ -349,13 +349,13 @@ checkXcodeSetup() {
     if ! cmdExists xcrun; then
         exitError "xcrun command not found on the PATH! Please check that you have correctly installed Xcode."
     fi
-    if ! xcrun -f codesign > /dev/null 2>&1; then
+    if ! xcrun -f codesign >/dev/null 2>&1; then
         exitError "codesign command not found. You may need to run 'sudo xcode-select -r' to set up Xcode."
     fi
-    if ! xcrun -f altool > /dev/null 2>&1; then
+    if ! xcrun -f altool >/dev/null 2>&1; then
         exitError "altool command not found. You may need to run 'sudo xcode-select -r' to set up Xcode."
     fi
-    if ! xcrun -f stapler > /dev/null 2>&1; then
+    if ! xcrun -f stapler >/dev/null 2>&1; then
         exitError "stapler command not found. You may need to run 'sudo xcode-select -r' to set up Xcode."
     fi
 }
@@ -386,7 +386,7 @@ performChecks() {
     checkSourceBranchExists
 
     logInfo "Checking out '${SOURCE_BRANCH}'..."
-    git checkout "$SOURCE_BRANCH" > /dev/null 2>&1
+    git checkout "$SOURCE_BRANCH" >/dev/null 2>&1
 
     logInfo "Attempting to find '${RELEASE_NAME}' in various files..."
 
@@ -401,7 +401,7 @@ performChecks() {
 # https://superuser.com/questions/205127/
 if ! cmdExists realpath; then
     realpath() {
-        pushd . > /dev/null
+        pushd . >/dev/null
         if [ -d "$1" ]; then
             cd "$1"
             dirs -l +0
@@ -415,14 +415,12 @@ if ! cmdExists realpath; then
                 echo "$cur_dir/$(basename "$1")"
             fi
         fi
-        popd > /dev/null
+        popd >/dev/null
     }
 fi
 
-
 trap 'exitError "Exited upon user request."' SIGINT SIGTERM
 trap 'exitError "Error occurred!"' ERR
-
 
 # -----------------------------------------------------------------------
 #                             check command
@@ -431,9 +429,10 @@ check() {
     while [ $# -ge 1 ]; do
         local arg="$1"
         case "$arg" in
-            -v|--version)
-                RELEASE_NAME="$2"
-                shift ;;
+        -v | --version)
+            RELEASE_NAME="$2"
+            shift
+            ;;
         esac
         shift
     done
@@ -454,42 +453,51 @@ merge() {
     while [ $# -ge 1 ]; do
         local arg="$1"
         case "$arg" in
-            -v|--version)
-                RELEASE_NAME="$2"
-                shift ;;
+        -v | --version)
+            RELEASE_NAME="$2"
+            shift
+            ;;
 
-            -a|--app-name)
-                APP_NAME="$2"
-                shift ;;
+        -a | --app-name)
+            APP_NAME="$2"
+            shift
+            ;;
 
-            -s|--source-dir)
-                SRC_DIR="$2"
-                shift ;;
+        -s | --source-dir)
+            SRC_DIR="$2"
+            shift
+            ;;
 
-            -k|--key|-g|--gpg-key)
-                GPG_GIT_KEY="$2"
-                shift ;;
+        -k | --key | -g | --gpg-key)
+            GPG_GIT_KEY="$2"
+            shift
+            ;;
 
-            --timestamp)
-                TIMESTAMP_SERVER="$2"
-                shift ;;
+        --timestamp)
+            TIMESTAMP_SERVER="$2"
+            shift
+            ;;
 
-            -r|--release-branch)
-                SOURCE_BRANCH="$2"
-                shift ;;
+        -r | --release-branch)
+            SOURCE_BRANCH="$2"
+            shift
+            ;;
 
-            -t|--tag-name)
-                TAG_NAME="$2"
-                shift ;;
+        -t | --tag-name)
+            TAG_NAME="$2"
+            shift
+            ;;
 
-            -h|--help)
-                printUsage "merge"
-                exit ;;
+        -h | --help)
+            printUsage "merge"
+            exit
+            ;;
 
-            *)
-                logError "Unknown option '$arg'\n"
-                printUsage "merge"
-                exit 1 ;;
+        *)
+            logError "Unknown option '$arg'\n"
+            printUsage "merge"
+            exit 1
+            ;;
         esac
         shift
     done
@@ -519,19 +527,19 @@ merge() {
     if [ -n "$OS_MACOS" ]; then
         flags="-Ezo"
     fi
-    CHANGELOG=$(grep ${flags} "## ${RELEASE_NAME} \([0-9]{4}-[0-9]{2}-[0-9]{2}\)\n\n(.|\n)+?\n\n## " CHANGELOG.md \
-                | tail -n+3 | sed '$d' | sed 's/^### //')
+    CHANGELOG=$(grep ${flags} "## ${RELEASE_NAME} \([0-9]{4}-[0-9]{2}-[0-9]{2}\)\n\n(.|\n)+?\n\n## " CHANGELOG.md |
+        tail -n+3 | sed '$d' | sed 's/^### //')
     COMMIT_MSG="Release ${RELEASE_NAME}"
 
     logInfo "Creating tag '${TAG_NAME}'..."
-    if [ -z  "$GPG_GIT_KEY" ]; then
+    if [ -z "$GPG_GIT_KEY" ]; then
         git tag -a "$TAG_NAME" -m "$COMMIT_MSG" -m "${CHANGELOG}" -s
     else
         git tag -a "$TAG_NAME" -m "$COMMIT_MSG" -m "${CHANGELOG}" -s -u "$GPG_GIT_KEY"
     fi
 
     logInfo "Advancing 'latest' tag..."
-    if [ -z  "$GPG_GIT_KEY" ]; then
+    if [ -z "$GPG_GIT_KEY" ]; then
         git tag -sf -a "latest" -m "Latest stable release"
     else
         git tag -sf -u "$GPG_GIT_KEY" -a "latest" -m "Latest stable release"
@@ -555,45 +563,55 @@ appimage() {
     while [ $# -ge 1 ]; do
         local arg="$1"
         case "$arg" in
-            -v|--version)
-                RELEASE_NAME="$2"
-                shift ;;
+        -v | --version)
+            RELEASE_NAME="$2"
+            shift
+            ;;
 
-            -a|--appdir)
-                appdir="$2"
-                shift ;;
+        -a | --appdir)
+            appdir="$2"
+            shift
+            ;;
 
-            -o|--output-dir)
-                OUTPUT_DIR="$2"
-                shift ;;
+        -o | --output-dir)
+            OUTPUT_DIR="$2"
+            shift
+            ;;
 
-            -d|--docker-image)
-                DOCKER_IMAGE="$2"
-                shift ;;
+        -d | --docker-image)
+            DOCKER_IMAGE="$2"
+            shift
+            ;;
 
-            --container-name)
-                DOCKER_CONTAINER_NAME="$2"
-                shift ;;
+        --container-name)
+            DOCKER_CONTAINER_NAME="$2"
+            shift
+            ;;
 
-            --appsign)
-                build_appsign=true ;;
+        --appsign)
+            build_appsign=true
+            ;;
 
-            --verbosity)
-                verbosity=$2
-                shift ;;
+        --verbosity)
+            verbosity=$2
+            shift
+            ;;
 
-            -k|--key)
-                build_key="$2"
-                shift ;;
+        -k | --key)
+            build_key="$2"
+            shift
+            ;;
 
-            -h|--help)
-                printUsage "appimage"
-                exit ;;
+        -h | --help)
+            printUsage "appimage"
+            exit
+            ;;
 
-            *)
-                logError "Unknown option '$arg'\n"
-                printUsage "appimage"
-                exit 1 ;;
+        *)
+            logError "Unknown option '$arg'\n"
+            printUsage "appimage"
+            exit 1
+            ;;
         esac
         shift
     done
@@ -635,20 +653,20 @@ appimage() {
 
     # Test if linuxdeploy and linuxdeploy-plugin-qt are installed
     # on the system or inside the Docker container
-    if ! ${docker_test_cmd} which ${linuxdeploy} > /dev/null; then
+    if ! ${docker_test_cmd} which ${linuxdeploy} >/dev/null; then
         logInfo "Downloading linuxdeploy..."
         linuxdeploy="./linuxdeploy"
         linuxdeploy_cleanup="rm -f ${linuxdeploy}"
-        if ! curl -Lf "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" > "$linuxdeploy"; then
+        if ! curl -Lf "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" >"$linuxdeploy"; then
             exitError "linuxdeploy download failed."
         fi
         chmod +x "$linuxdeploy"
     fi
-    if ! ${docker_test_cmd} which ${linuxdeploy_plugin_qt} > /dev/null; then
+    if ! ${docker_test_cmd} which ${linuxdeploy_plugin_qt} >/dev/null; then
         logInfo "Downloading linuxdeploy-plugin-qt..."
         linuxdeploy_plugin_qt="./linuxdeploy-plugin-qt"
         linuxdeploy_plugin_qt_cleanup="rm -f ${linuxdeploy_plugin_qt}"
-        if ! curl -Lf "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage" > "$linuxdeploy_plugin_qt"; then
+        if ! curl -Lf "https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage" >"$linuxdeploy_plugin_qt"; then
             exitError "linuxdeploy-plugin-qt download failed."
         fi
         chmod +x "$linuxdeploy_plugin_qt"
@@ -659,14 +677,14 @@ appimage() {
         logInfo "Downloading appimagetool..."
         appimagetool="./appimagetool"
         appimagetool_cleanup="rm -f ${appimagetool}"
-        if ! curl -Lf "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" > "$appimagetool"; then
+        if ! curl -Lf "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" >"$appimagetool"; then
             exitError "appimagetool download failed."
         fi
         chmod +x "$appimagetool"
     fi
 
     # Create custom AppRun wrapper
-    cat << 'EOF' > "${out_real}/KeePassXC-AppRun"
+    cat <<'EOF' >"${out_real}/KeePassXC-AppRun"
 #!/usr/bin/env bash
 
 export PATH="$(dirname $0)/usr/bin:${PATH}"
@@ -694,7 +712,7 @@ EOF
     logInfo "Collecting libs and patching binaries..."
     if [ -z "$DOCKER_IMAGE" ]; then
         "$linuxdeploy" --verbosity=${verbosity} --plugin=qt --appdir="$appdir" --desktop-file="$desktop_file" \
-        --custom-apprun="${out_real}/KeePassXC-AppRun" --icon-file="$icon" ${executables}
+            --custom-apprun="${out_real}/KeePassXC-AppRun" --icon-file="$icon" ${executables}
     else
         docker run --name "$DOCKER_CONTAINER_NAME" --rm \
             --cap-add SYS_ADMIN --security-opt apparmor:unconfined --device /dev/fuse -it \
@@ -722,7 +740,7 @@ EOF
     local appimage_name="KeePassXC-x86_64.AppImage"
     if [ "" != "$RELEASE_NAME" ]; then
         appimage_name="KeePassXC-${RELEASE_NAME}-x86_64.AppImage"
-        echo "X-AppImage-Version=${RELEASE_NAME}" >> "$desktop_file"
+        echo "X-AppImage-Version=${RELEASE_NAME}" >>"$desktop_file"
     fi
 
     # Run appimagetool to package (and possibly sign) AppImage
@@ -756,97 +774,121 @@ build() {
     while [ $# -ge 1 ]; do
         local arg="$1"
         case "$arg" in
-            -v|--version)
-                RELEASE_NAME="$2"
-                shift ;;
+        -v | --version)
+            RELEASE_NAME="$2"
+            shift
+            ;;
 
-            -a|--app-name)
-                APP_NAME="$2"
-                shift ;;
+        -a | --app-name)
+            APP_NAME="$2"
+            shift
+            ;;
 
-            -s|--source-dir)
-                SRC_DIR="$2"
-                shift ;;
+        -s | --source-dir)
+            SRC_DIR="$2"
+            shift
+            ;;
 
-            -o|--output-dir)
-                OUTPUT_DIR="$2"
-                shift ;;
+        -o | --output-dir)
+            OUTPUT_DIR="$2"
+            shift
+            ;;
 
-            -t|--tag-name)
-                TAG_NAME="$2"
-                shift ;;
+        -t | --tag-name)
+            TAG_NAME="$2"
+            shift
+            ;;
 
-            -d|--docker-image)
-                DOCKER_IMAGE="$2"
-                shift ;;
+        -d | --docker-image)
+            DOCKER_IMAGE="$2"
+            shift
+            ;;
 
-            --container-name)
-                DOCKER_CONTAINER_NAME="$2"
-                shift ;;
+        --container-name)
+            DOCKER_CONTAINER_NAME="$2"
+            shift
+            ;;
 
-            --appsign)
-                build_appsign=true ;;
+        --appsign)
+            build_appsign=true
+            ;;
 
-            --timestamp)
-                TIMESTAMP_SERVER="$2"
-                shift ;;
+        --timestamp)
+            TIMESTAMP_SERVER="$2"
+            shift
+            ;;
 
-            -k|--key)
-                build_key="$2"
-                shift ;;
+        -k | --key)
+            build_key="$2"
+            shift
+            ;;
 
-            --snapcraft)
-                build_snapcraft=true ;;
+        --snapcraft)
+            build_snapcraft=true
+            ;;
 
-            --appimage)
-                build_appimage=true ;;
+        --appimage)
+            build_appimage=true
+            ;;
 
-            --cmake-generator)
-                CMAKE_GENERATOR="$2"
-                shift ;;
+        --cmake-generator)
+            CMAKE_GENERATOR="$2"
+            shift
+            ;;
 
-            -c|--cmake-options)
-                CMAKE_OPTIONS="$2"
-                shift ;;
+        -c | --cmake-options)
+            CMAKE_OPTIONS="$2"
+            shift
+            ;;
 
-            --compiler)
-                COMPILER="$2"
-                shift ;;
+        --compiler)
+            COMPILER="$2"
+            shift
+            ;;
 
-            --vcpkg)
-                build_vcpkg="$2"
-                shift ;;
+        --vcpkg)
+            build_vcpkg="$2"
+            shift
+            ;;
 
-            -m|--make-options)
-                MAKE_OPTIONS="$2"
-                shift ;;
+        -m | --make-options)
+            MAKE_OPTIONS="$2"
+            shift
+            ;;
 
-            -g|--generators)
-                build_generators="$2"
-                shift ;;
+        -g | --generators)
+            build_generators="$2"
+            shift
+            ;;
 
-            -i|--install-prefix)
-                INSTALL_PREFIX="$2"
-                shift ;;
+        -i | --install-prefix)
+            INSTALL_PREFIX="$2"
+            shift
+            ;;
 
-            -p|--plugins)
-                BUILD_PLUGINS="$2"
-                shift ;;
+        -p | --plugins)
+            BUILD_PLUGINS="$2"
+            shift
+            ;;
 
-            -n|--no-source-tarball)
-                build_source_tarball=false ;;
+        -n | --no-source-tarball)
+            build_source_tarball=false
+            ;;
 
-            --snapshot)
-                build_snapshot=true ;;
+        --snapshot)
+            build_snapshot=true
+            ;;
 
-            -h|--help)
-                printUsage "build"
-                exit ;;
+        -h | --help)
+            printUsage "build"
+            exit
+            ;;
 
-            *)
-                logError "Unknown option '$arg'\n"
-                printUsage "build"
-                exit 1 ;;
+        *)
+            logError "Unknown option '$arg'\n"
+            printUsage "build"
+            exit 1
+            ;;
         esac
         shift
     done
@@ -864,7 +906,7 @@ build() {
 
     if ${build_snapshot}; then
         TAG_NAME="HEAD"
-        local branch=`git rev-parse --abbrev-ref HEAD`
+        local branch=$(git rev-parse --abbrev-ref HEAD)
         logInfo "Using current branch ${branch} to build..."
         RELEASE_NAME="${RELEASE_NAME}-snapshot"
         CMAKE_OPTIONS="${CMAKE_OPTIONS} -DKEEPASSXC_BUILD_TYPE=Snapshot -DOVERRIDE_VERSION=${RELEASE_NAME}"
@@ -878,12 +920,12 @@ build() {
             logInfo "Checking out release tag '${TAG_NAME}'..."
         fi
 
-        if ! git checkout "$TAG_NAME" > /dev/null 2>&1; then
+        if ! git checkout "$TAG_NAME" >/dev/null 2>&1; then
             exitError "Failed to check out target branch."
         fi
     fi
 
-    if  ! ${build_snapshot} && [ -d "$OUTPUT_DIR" ]; then
+    if ! ${build_snapshot} && [ -d "$OUTPUT_DIR" ]; then
         exitError "Output dir '${OUTPUT_DIR}' already exists."
     fi
 
@@ -903,11 +945,11 @@ build() {
 
         # add .version and .gitrev files to tarball
         mkdir "${prefix}"
-        echo -n ${RELEASE_NAME} > "${prefix}/.version"
-        echo -n `git rev-parse --short=7 HEAD` > "${prefix}/.gitrev"
+        echo -n ${RELEASE_NAME} >"${prefix}/.version"
+        echo -n $(git rev-parse --short=7 HEAD) >"${prefix}/.gitrev"
         tar --append --file="${OUTPUT_DIR}/${tarball_name}" "${prefix}/.version" "${prefix}/.gitrev"
         rm "${prefix}/.version" "${prefix}/.gitrev"
-        rmdir "${prefix}" 2> /dev/null
+        rmdir "${prefix}" 2>/dev/null
 
         local xz="xz"
         if ! cmdExists xz; then
@@ -931,10 +973,10 @@ build() {
         INSTALL_PREFIX="/usr"
     fi
     if [ -n "$OS_MACOS" ]; then
-      type brew &> /dev/null 2>&1
-      if [ $? -eq 0 ]; then
-        INSTALL_PREFIX=$(brew --prefix)
-      fi
+        type brew &>/dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            INSTALL_PREFIX=$(brew --prefix)
+        fi
     fi
 
     # Do not build tests cases
@@ -956,7 +998,7 @@ build() {
 
             logInfo "Configuring build..."
             cmake -G "${CMAKE_GENERATOR}" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="$(uname -m)" \
-            -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" ${CMAKE_OPTIONS} "$SRC_DIR"
+                -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" ${CMAKE_OPTIONS} "$SRC_DIR"
 
             logInfo "Compiling and packaging sources..."
             cmake --build . -- ${MAKE_OPTIONS}
@@ -1023,7 +1065,7 @@ build() {
             docker run --name "$DOCKER_CONTAINER_NAME" --rm \
                 --cap-add SYS_ADMIN --security-opt apparmor:unconfined --device /dev/fuse \
                 --user $(id -u):$(id -g) \
-                -e "CC=${CC}" -e "CXX=${CXX}" -it  \
+                -e "CC=${CC}" -e "CXX=${CXX}" -it \
                 -v "$(realpath "$SRC_DIR"):/keepassxc/src:ro" \
                 -v "$(realpath "$OUTPUT_DIR"):/keepassxc/out:rw" \
                 "$DOCKER_IMAGE" \
@@ -1071,24 +1113,28 @@ gpgsign() {
     while [ $# -ge 1 ]; do
         local arg="$1"
         case "$arg" in
-            -f|--files)
-                while [ "${2:0:1}" != "-" ] && [ $# -ge 2 ]; do
-                    sign_files+=("$2")
-                    shift
-                done ;;
+        -f | --files)
+            while [ "${2:0:1}" != "-" ] && [ $# -ge 2 ]; do
+                sign_files+=("$2")
+                shift
+            done
+            ;;
 
-            -k|--key|-g|--gpg-key)
-                GPG_KEY="$2"
-                shift ;;
+        -k | --key | -g | --gpg-key)
+            GPG_KEY="$2"
+            shift
+            ;;
 
-            -h|--help)
-                printUsage "gpgsign"
-                exit ;;
+        -h | --help)
+            printUsage "gpgsign"
+            exit
+            ;;
 
-            *)
-                logError "Unknown option '$arg'\n"
-                printUsage "gpgsign"
-                exit 1 ;;
+        *)
+            logError "Unknown option '$arg'\n"
+            printUsage "gpgsign"
+            exit 1
+            ;;
         esac
         shift
     done
@@ -1114,7 +1160,10 @@ gpgsign() {
         logInfo "Creating digest for file '${f}'..."
         local rp="$(realpath "$f")"
         local bname="$(basename "$f")"
-        (cd "$(dirname "$rp")"; sha256sum "$bname"  > "${bname}.DIGEST")
+        (
+            cd "$(dirname "$rp")"
+            sha256sum "$bname" >"${bname}.DIGEST"
+        )
     done
 
     logInfo "All done!"
@@ -1130,24 +1179,28 @@ appsign() {
     while [ $# -ge 1 ]; do
         local arg="$1"
         case "$arg" in
-            -f|--files)
-                while [ "${2:0:1}" != "-" ] && [ $# -ge 2 ]; do
-                    sign_files+=("$2")
-                    shift
-                done ;;
+        -f | --files)
+            while [ "${2:0:1}" != "-" ] && [ $# -ge 2 ]; do
+                sign_files+=("$2")
+                shift
+            done
+            ;;
 
-            -k|--key|-i|--identity)
-                key="$2"
-                shift ;;
+        -k | --key | -i | --identity)
+            key="$2"
+            shift
+            ;;
 
-            -h|--help)
-                printUsage "appsign"
-                exit ;;
+        -h | --help)
+            printUsage "appsign"
+            exit
+            ;;
 
-            *)
-                logError "Unknown option '$arg'\n"
-                printUsage "appsign"
-                exit 1 ;;
+        *)
+            logError "Unknown option '$arg'\n"
+            printUsage "appsign"
+            exit 1
+            ;;
         esac
         shift
     done
@@ -1206,7 +1259,7 @@ appsign() {
                 exitError "Signing failed!"
             fi
             logInfo "Signing executables..."
-            if ! find "${app_dir_tmp}/Contents/MacOS" \( -type f -not -name KeePassXC \) -print0  | xargs -0 \
+            if ! find "${app_dir_tmp}/Contents/MacOS" \( -type f -not -name KeePassXC \) -print0 | xargs -0 \
                 xcrun codesign --sign "${key}" --verbose --force --options runtime; then
                 cd "${orig_dir}"
                 exitError "Signing failed!"
@@ -1272,7 +1325,6 @@ appsign() {
     logInfo "All done!"
 }
 
-
 # -----------------------------------------------------------------------
 #                           notarize command
 # -----------------------------------------------------------------------
@@ -1284,28 +1336,33 @@ notarize() {
     while [ $# -ge 1 ]; do
         local arg="$1"
         case "$arg" in
-            -f|--files)
-                while [ "${2:0:1}" != "-" ] && [ $# -ge 2 ]; do
-                    notarize_files+=("$2")
-                    shift
-                done ;;
+        -f | --files)
+            while [ "${2:0:1}" != "-" ] && [ $# -ge 2 ]; do
+                notarize_files+=("$2")
+                shift
+            done
+            ;;
 
-            -u|--username)
-                ac_username="$2"
-                shift ;;
+        -u | --username)
+            ac_username="$2"
+            shift
+            ;;
 
-            -c|--keychain)
-                ac_keychain="$2"
-                shift ;;
+        -c | --keychain)
+            ac_keychain="$2"
+            shift
+            ;;
 
-            -h|--help)
-                printUsage "notarize"
-                exit ;;
+        -h | --help)
+            printUsage "notarize"
+            exit
+            ;;
 
-            *)
-                logError "Unknown option '$arg'\n"
-                printUsage "notarize"
-                exit 1 ;;
+        *)
+            logError "Unknown option '$arg'\n"
+            printUsage "notarize"
+            exit 1
+            ;;
         esac
         shift
     done
@@ -1354,7 +1411,7 @@ notarize() {
 
             status="$(xcrun altool --notarization-info "${ticket}" \
                 --username "${ac_username}" \
-                --password "@keychain:${ac_keychain}" 2> /dev/null)"
+                --password "@keychain:${ac_keychain}" 2>/dev/null)"
 
             if echo "$status" | grep -q "Status Code: 0"; then
                 logInfo "\nNotarization successful."
@@ -1377,7 +1434,6 @@ notarize() {
         logInfo "Disk image successfully notarized."
     done
 }
-
 
 # -----------------------------------------------------------------------
 #                              i18n command
@@ -1408,7 +1464,7 @@ i18n() {
 
         logInfo "Updating source translation file..."
         LUPDATE=lupdate-qt5
-        if ! command -v $LUPDATE > /dev/null; then
+        if ! command -v $LUPDATE >/dev/null; then
             LUPDATE=lupdate
         fi
         $LUPDATE -no-ui-lines -disable-heuristic similartext -locations none -extensions c,cpp,h,js,mm,qrc,ui \
@@ -1449,7 +1505,6 @@ i18n() {
     fi
 }
 
-
 # -----------------------------------------------------------------------
 #                       parse global command line
 # -----------------------------------------------------------------------
@@ -1462,9 +1517,9 @@ if [ -z "$MODE" ]; then
 elif [ "help" == "$MODE" ]; then
     printUsage "$1"
     exit
-elif [ "check" == "$MODE" ] || [ "merge" == "$MODE" ] || [ "build" == "$MODE" ] \
-    || [ "gpgsign" == "$MODE" ] || [ "appsign" == "$MODE" ]|| [ "notarize" == "$MODE" ] \
-    || [ "appimage" == "$MODE" ]|| [ "i18n" == "$MODE" ]; then
+elif [ "check" == "$MODE" ] || [ "merge" == "$MODE" ] || [ "build" == "$MODE" ] ||
+    [ "gpgsign" == "$MODE" ] || [ "appsign" == "$MODE" ] || [ "notarize" == "$MODE" ] ||
+    [ "appimage" == "$MODE" ] || [ "i18n" == "$MODE" ]; then
     ${MODE} "$@"
 else
     printUsage "$MODE"
