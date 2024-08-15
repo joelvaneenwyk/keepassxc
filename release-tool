@@ -277,7 +277,7 @@ checkGitRepository() {
 }
 
 checkReleaseDoesNotExist() {
-    if [ $(git tag -l $TAG_NAME) ]; then
+    if [ $(git tag -l "$TAG_NAME") ]; then
         exitError "Release '$RELEASE_NAME' (tag: '$TAG_NAME') already exists!"
     fi
 }
@@ -296,9 +296,9 @@ checkSourceBranchExists() {
 
 checkVersionInCMake() {
     local app_name_upper="$(echo "$APP_NAME" | tr '[:lower:]' '[:upper:]')"
-    local major_num="$(echo ${RELEASE_NAME} | cut -f1 -d.)"
-    local minor_num="$(echo ${RELEASE_NAME} | cut -f2 -d.)"
-    local patch_num="$(echo ${RELEASE_NAME} | cut -f3 -d. | cut -f1 -d-)"
+    local major_num="$(echo "${RELEASE_NAME}" | cut -f1 -d.)"
+    local minor_num="$(echo "${RELEASE_NAME}" | cut -f2 -d.)"
+    local patch_num="$(echo "${RELEASE_NAME}" | cut -f3 -d. | cut -f1 -d-)"
 
     if ! grep -q "${app_name_upper}_VERSION_MAJOR \"${major_num}\"" CMakeLists.txt; then
         exitError "${app_name_upper}_VERSION_MAJOR not updated to '${major_num}' in CMakeLists.txt!"
@@ -711,8 +711,8 @@ EOF
 
     logInfo "Collecting libs and patching binaries..."
     if [ -z "$DOCKER_IMAGE" ]; then
-        "$linuxdeploy" --verbosity=${verbosity} --plugin=qt --appdir="$appdir" --desktop-file="$desktop_file" \
-            --custom-apprun="${out_real}/KeePassXC-AppRun" --icon-file="$icon" ${executables}
+        "$linuxdeploy" --verbosity="${verbosity}" --plugin=qt --appdir="$appdir" --desktop-file="$desktop_file" \
+            --custom-apprun="${out_real}/KeePassXC-AppRun" --icon-file="$icon" "${executables}"
     else
         docker run --name "$DOCKER_CONTAINER_NAME" --rm \
             --cap-add SYS_ADMIN --security-opt apparmor:unconfined --device /dev/fuse -it \
@@ -747,7 +747,7 @@ EOF
     # --no-appstream is required, since it may crash on newer systems
     # see: https://github.com/AppImage/AppImageKit/issues/856
     if ! "$appimagetool" --updateinformation "gh-releases-zsync|keepassxreboot|keepassxc|latest|KeePassXC-*-x86_64.AppImage.zsync" \
-        ${appsign_flag} ${appsign_key_flag} --no-appstream "$appdir" "${out_real}/${appimage_name}"; then
+        ${appsign_flag} "${appsign_key_flag}" --no-appstream "$appdir" "${out_real}/${appimage_name}"; then
         exitError "AppImage creation failed."
     fi
 
@@ -945,7 +945,7 @@ build() {
 
         # add .version and .gitrev files to tarball
         mkdir "${prefix}"
-        echo -n ${RELEASE_NAME} >"${prefix}/.version"
+        echo -n "${RELEASE_NAME}" >"${prefix}/.version"
         echo -n $(git rev-parse --short=7 HEAD) >"${prefix}/.gitrev"
         tar --append --file="${OUTPUT_DIR}/${tarball_name}" "${prefix}/.version" "${prefix}/.gitrev"
         rm "${prefix}/.version" "${prefix}/.gitrev"
@@ -965,7 +965,7 @@ build() {
 
     logInfo "Configuring sources..."
     for p in ${BUILD_PLUGINS}; do
-        CMAKE_OPTIONS="${CMAKE_OPTIONS} -DWITH_XC_$(echo $p | tr '[:lower:]' '[:upper:]')=On"
+        CMAKE_OPTIONS="${CMAKE_OPTIONS} -DWITH_XC_$(echo "$p" | tr '[:lower:]' '[:upper:]')=On"
     done
     if [ -n "$OS_LINUX" ] && ${build_appimage}; then
         CMAKE_OPTIONS="${CMAKE_OPTIONS} -DKEEPASSXC_DIST_TYPE=AppImage"
@@ -998,10 +998,10 @@ build() {
 
             logInfo "Configuring build..."
             cmake -G "${CMAKE_GENERATOR}" -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="$(uname -m)" \
-                -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" ${CMAKE_OPTIONS} "$SRC_DIR"
+                -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" "${CMAKE_OPTIONS}" "$SRC_DIR"
 
             logInfo "Compiling and packaging sources..."
-            cmake --build . -- ${MAKE_OPTIONS}
+            cmake --build . -- "${MAKE_OPTIONS}"
             cpack -G "DragNDrop"
 
             # Appsign the executables if desired
@@ -1015,10 +1015,10 @@ build() {
             # Building on Windows with Msys2
             logInfo "Configuring build..."
             cmake -DCMAKE_BUILD_TYPE=Release -G "${CMAKE_GENERATOR}" -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
-                ${CMAKE_OPTIONS} "$SRC_DIR"
+                "${CMAKE_OPTIONS}" "$SRC_DIR"
 
             logInfo "Compiling and packaging sources..."
-            cmake --build . --config "Release" -- ${MAKE_OPTIONS}
+            cmake --build . --config "Release" -- "${MAKE_OPTIONS}"
 
             # Appsign the executables if desired
             if ${build_appsign} && [ -f "${build_key}" ]; then
@@ -1037,11 +1037,11 @@ build() {
 
             # Building on Linux without Docker container
             logInfo "Configuring build..."
-            cmake -DCMAKE_BUILD_TYPE=Release ${CMAKE_OPTIONS} \
+            cmake -DCMAKE_BUILD_TYPE=Release "${CMAKE_OPTIONS}" \
                 -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" "$SRC_DIR"
 
             logInfo "Compiling sources..."
-            make ${MAKE_OPTIONS}
+            make "${MAKE_OPTIONS}"
 
             logInfo "Installing to bin dir..."
             make DESTDIR="${OUTPUT_DIR}/KeePassXC.AppDir" install/strip
@@ -1096,7 +1096,7 @@ build() {
             docker_container_name_flag="--container-name ${DOCKER_CONTAINER_NAME}"
         fi
         appimage -a "${OUTPUT_DIR}/KeePassXC.AppDir" -o "${OUTPUT_DIR}" \
-            ${appsign_flag} ${appsign_key_flag} ${docker_image_flag} ${docker_container_name_flag}
+            ${appsign_flag} "${appsign_key_flag}" "${docker_image_flag}" "${docker_container_name_flag}"
     fi
 
     cleanup
@@ -1284,7 +1284,7 @@ appsign() {
 
                 cd "${orig_dir}"
                 cp -f "${tmp_dir}/$(basename "${f}")" "${f}"
-                rm -Rf ${tmp_dir}
+                rm -Rf "${tmp_dir}"
             fi
 
             logInfo "File '${f}' successfully signed."
