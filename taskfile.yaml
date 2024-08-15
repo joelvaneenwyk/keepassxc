@@ -1,0 +1,214 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  VCPKG_BOOTSTRAP_BAT: "{{.TASKFILE_DIR}}/cmake/vcpkg/bootstrap-vcpkg.bat"
+  VCPKG_BOOTSTRAP_SH: "{{.TASKFILE_DIR}}/cmake/vcpkg/bootstrap-vcpkg.sh"
+  VCPKG_EXE: "{{.TASKFILE_DIR}}/cmake/vcpkg/vcpkg.exe"
+  BUILD_DIR_NAME: >-
+    build
+  OUTPUT_EXE_PATH: >-
+    target/debug/aw_models.dll
+  RUN_WINDOWS: "cmd /d /e:on /c"
+  RUN_UNIX: "sh -c"
+  RUN: '{{if eq OS "windows"}}{{.RUN_WINDOWS}}{{ else }}{{.RUN_UNIX}}{{ end }}'
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  clean:
+    silent: true
+    cmds:
+      - cmd: git add .
+        ignore_error: true
+      - task: git-clean
+
+  git-clean:
+    vars:
+      CLOSE_STDIN: '{{if eq OS "windows"}}<nul{{else}}0<&-{{end}}'
+    cmds:
+      - cmd: git submodule foreach --recursive git add .
+        silent: true
+        ignore_error: true
+      - cmd: git submodule foreach --recursive git clean -xfd {{.CLOSE_STDIN}}
+        silent: true
+        ignore_error: true
+      - cmd: git add .
+      - cmd: git clean -xfd {{.CLOSE_STDIN}}
+        silent: true
+        ignore_error: true
+
+  rebuild:
+    cmds:
+      - task: clean
+      - task: build
+
+  run:
+    deps: [cmake-install]
+    cmds:
+      - cmd: >-
+          cmd.exe /D /E:ON /C \
+            start "taskfile-run" /D "{{joinPath .TASKFILE_DIR "bin"}}" "{{joinPath .TASKFILE_DIR .OUTPUT_EXE_PATH}}"
+
+  vcpkg-integrate:
+    deps: [vcpkg-download]
+    internal: true
+    env:
+      VCPKG_ROOT: '{{joinPath .TASKFILE_DIR "cmake" "vcpkg"}}'
+    sources:
+      - vcpkg.json
+    generates:
+      - ./vcpkg_installed/vcpkg/vcpkg-lock.json
+      - ./vcpkg_installed/*-*/lib/*.lib
+      - ./vcpkg_installed/*-*/lib/*.a
+      - ./vcpkg_installed/*-*/include/**/*.h
+    cmds:
+      - cmd: |
+          {{.RUN}} "{{ fromSlash .VCPKG_EXE }}" \
+            --vcpkg-root "{{joinPath .TASKFILE_DIR "cmake" "vcpkg "}}" \
+            integrate install
+      - cmd: |
+          {{.RUN}} "{{ fromSlash .VCPKG_EXE }}" \
+            --vcpkg-root "{{joinPath .TASKFILE_DIR "cmake" "vcpkg "}}" \
+            install \
+              --debug --keep-going
+
+  vcpkg-download:
+    deps: [git-submodule-init]
+    status:
+      - test -f "{{.VCPKG_EXE}}"
+    env:
+      VCPKG_ROOT: '{{joinPath .TASKFILE_DIR "cmake" "vcpkg"}}'
+    cmds:
+      - cmd: '{{.RUN}} "{{ fromSlash .VCPKG_BOOTSTRAP_BAT }}" -disableMetrics'
+
+  yarn-install:
+    sources:
+      - package.json
+      - aw-*/**/package.json
+    generates:
+      - yarn.lock
+      - .yarn/install-state.gz
+      - .yarn/unplugged/**/*
+    cmds:
+      - cmd: yarn install
+
+  yarn-build:
+    deps: [yarn-install]
+    aliases: [yb, ybuild, build-yarn]
+    cmds:
+      - cmd: yarn workspaces foreach --all run build --parallel
+
+  build:
+    deps: [vcpkg-integrate]
+    cmds:
+      - cmd: |
+          cmake \
+            -B .build \
+            -S "{{.TASKFILE_DIR}}" \
+            -DWITH_XC_ALL=ON \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+      - cmd: cmake --build .build
+
+  make:
+    deps: [python-venv]
+    cmds:
+      - cmd: cmd.exe /D /C "call .venv\Scripts\activate.bat && make"
+
+  python-venv:
+    sources:
+      - pyproject.toml
+    generates:
+      - ./.venv/rye-venv.json
+      - ./requirements.lock
+      - ./requirements-dev.lock
+    cmds:
+      - cmd: rye sync
+
+  python-build:
+    deps: [python-venv, git-submodule-init]
+    aliases: [py-build, pyb, build-py]
+    silent: true
+    sources:
+      - aw-*/**/pyproject.toml
+      - aw-*/**/requirements*.lock
+      - aw-*/**/*.py
+    generates:
+      - ./dist/activitywatch-*.tar.gz
+    cmds:
+      - cmd: rye build
+
+  deps-windows:
+    status:
+      - git --version
+      - make --version
+      - python --version
+      - poetry --version
+      - node --version
+      - npm --version
+      - rustc --version
+      - cargo --version
+      - 7z
+    cmds:
+      - cmd: |
+          scoop install \
+            extras/inno-setup \
+            main/7zip \
+            main/uutils-coreutils
+
+  git-submodule-init:
+    sources:
+      - .gitmodules
+    status:
+      - test -f "{{.VCPKG_BOOTSTRAP_BAT}}"
+      - test -f "{{.VCPKG_BOOTSTRAP_SH}}"
+    cmds:
+      - cmd: |
+          if [ -f "{{joinPath .TASKFILE_DIR ".gitmodules"}}" ]; then
+            git -C "{{.TASKFILE_DIR}}" submodule update --init --recursive
+          fi
+
+  clang-format:
+    aliases: [fmt, format]
+    sources:
+      - src/**/*.c
+      - src/**/*.h
+    cmds:
+      - for: sources
+        cmd: |
+          clang-format -i "{{joinPath .TASKFILE_DIR .ITEM}}"
+
+  tidy:
+    sources:
+      - src/**/*.c
+      - src/**/*.h
+    cmds:
+      - for: sources
+        task: clang-tidy
+        vars: { CLANG_TIDY_SOURCE: "{{.ITEM}}" }
+
+  clang-tidy:
+    requires:
+      vars: [CLANG_TIDY_SOURCE]
+    vars:
+      CLANG_TIDY_OUT_FILE: '.build/{{splitList "/" (toSlash .CLANG_TIDY_SOURCE) | last}}.out'
+    sources:
+      - "{{.CLANG_TIDY_SOURCE}}"
+    generates:
+      - "{{.CLANG_TIDY_OUT_FILE}}"
+    cmds:
+      - cmd: mkdir "{{joinPath .TASKFILE_DIR ".build"}}"
+        silent: true
+        ignore_error: true
+      - cmd: |
+          clang-tidy "{{joinPath .TASKFILE_DIR .CLANG_TIDY_SOURCE}}" \
+            --config-file="{{joinPath .TASKFILE_DIR ".clang-tidy"}}" \
+            --use-color \
+            --fix \
+            --fix-notes \
+            --fix-errors \
+          > "{{joinPath .TASKFILE_DIR .CLANG_TIDY_OUT_FILE | fromSlash}}"
