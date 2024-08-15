@@ -147,21 +147,28 @@ tasks:
       VCPKG_DEFAULT_BINARY_CACHE: '{{ .VCPKG_BINARY_CACHE_ROOT }}'
       VCPKG_DEFAULT_INSTALL_ROOT: '{{ .VCPKG_INSTALL_ROOT }}'
     cmds:
-      - cmd: cmd.exe /D /C rmdir /s /q "{{joinPath .TASKFILE_DIR ".build" | fromSlash}}"
-        silent: true
-        ignore_error: true
+      # - cmd: cmd.exe /D /C rmdir /s /q "{{joinPath .TASKFILE_DIR ".build" | fromSlash}}"
+      #   silent: true
+      #   ignore_error: true
+      #      -G "Visual Studio 17 2022" -A x64 \
       - cmd: |
           cmake \
             -DWITH_XC_ALL=ON -DWITH_TESTS=OFF -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE="{{joinPath .TASKFILE_DIR "cmake" "vcpkg" "scripts" "buildsystems" "vcpkg.cmake" | toSlash }}" \
             -DX_VCPKG_ASSET_SOURCES="x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES_ROOT}}/,,readwrite" \
             -DX_VCPKG_APPLOCAL_DEPS_INSTALL=ON \
+            -DWITH_XC_YUBIKEY=OFF \
+            -DWITH_XC_FDOSECRETS=OFF \
+            -DWITH_XC_UPDATECHECK=OFF \
+            -DKEEPASSXC_BUILD_TYPE=PreRelease \
             -B .build \
             -S "{{.TASKFILE_DIR}}" \
-            -G "Visual Studio 17 2022" -A x64 \
+            -G "Ninja"
+      #- cmd: |
+      #    cmake --build "{{joinPath .TASKFILE_DIR ".build"}}" --parallel=30 --verbose
       - cmd: |
-          cmake --build .build \
-            --no-warn-unused-cli --compile-no-warning-as-error --log-level=VERBOSE --debug-output
+          cd .build
+          ninja -k 0
 
   make:
     deps: [python-venv]
