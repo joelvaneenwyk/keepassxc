@@ -79,7 +79,7 @@ If you are using MSYS2, you have to add ```-G "MSYS Makefiles"``` at the beginni
 
 ## Recommended CMake Build Parameters
 
-```
+```text
 -DCMAKE_VERBOSE_MAKEFILE=ON
 -DCMAKE_BUILD_TYPE=<RelWithDebInfo/Debug/Release>
 -DWITH_GUI_TESTS=ON
@@ -89,7 +89,7 @@ If you are using MSYS2, you have to add ```-G "MSYS Makefiles"``` at the beginni
 
 KeePassXC comes with a variety of build options that can turn on/off features. Most notably, we allow you to build the application with all TCP/IP networking code disabled. Please note that we still require and link against Qt5's network library in order to use local named pipes on all operating systems. Each of these build options are supplied at the time of calling cmake:
 
-```
+```text
 -DWITH_XC_AUTOTYPE=[ON|OFF] Enable/Disable Auto-Type (default: ON)
 -DWITH_XC_YUBIKEY=[ON|OFF] Enable/Disable YubiKey HMAC-SHA1 authentication support (default: OFF)
 -DWITH_XC_BROWSER=[ON|OFF] Enable/Disable KeePassXC-Browser extension support (default: OFF)
