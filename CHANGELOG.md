@@ -3,6 +3,7 @@
 ## 2.7.8 (2024-05-05)
 
 ### Changes
+
 - Add hotkey for showing search help [#10591]
 - Add hotkey for group switching (Ctrl+Shift+PgUp/PgDown) [#10625]
 - Add per-database auto-save delay setting [#9100]
@@ -19,6 +20,7 @@
 - Windows: Improve DACL memory access protection [#10618]
 
 ### Fixes
+
 - Fix crash when deleting history items [#10451]
 - Fix crash on screen lock or computer sleep [#10458]
 - Fix search field not being focused after unlock [#10459]
@@ -46,12 +48,14 @@
 ## 2.7.7 (2024-03-09)
 
 ### Changes
+
 - Support USB Hotplug for Hardware Key interface [#10092]
 - Support 1PUX and Bitwarden import [#9815]
 - Browser: Add support for PassKeys [#8825, #9987, #10318]
 - Build System: Move to vcpkg manifest mode [#10088]
 
 ### Fixes
+
 - Fix multiple TOTP issues [#9874]
 - Fix focus loss on save when the editor is not visible anymore [#10075]
 - Fix visual when removing entry from history [#9947]
@@ -71,6 +75,7 @@
 ## 2.7.6 (2023-08-15)
 
 ### Changes
+
 - Significant improvement to visual when drag/drop entries [#9698]
 - Automatically prompt for Quick Unlock when showing unlock dialog [#9697]
 - Improve colorful lock icon and fix file MIME icon on KDE [#9632]
@@ -81,6 +86,7 @@
 - Browser: Improve error message when proxy cannot be found [#9385]
 
 ### Fixes
+
 - Fix crash on exit on macOS [#9620]
 - Fix crash on search if entry doesn't have a group [#9633]
 - Fix several issues with Quick Unlock [#9697]
@@ -96,6 +102,7 @@
 ## 2.7.5 (2023-05-14)
 
 ### Changes
+
 - Add menu option to allow screenshots [#8841]
 - Add support for Botan 3 [#9388]
 - Increase max TOTP step to 24 hours [#9149]
@@ -109,6 +116,7 @@
 - Linux: Set SingleMainWindow in .desktop file [#7430]
 
 ### Fixes
+
 - Fix crash when search clears while creating new entry [#9230]
 - Fix crash when using Windows Hello in a Remote Desktop session [#9006]
 - Fix crash in Group Edit after enabling Browser Integration [#8778]
@@ -136,10 +144,12 @@
 ## 2.7.4 (2022-10-29)
 
 ### Changes
+
 - Add 2 months expiration preset [#8687]
 - CLI: Add Unicode support on Windows [#8618]
 
 ### Fixes
+
 - Fix crash on macOS when unlocking database [#8676]
 - Fix display of passwords in preview panel [#8633]
 - Fix clicking links in entry preview panel [#8644]
@@ -152,6 +162,7 @@
 ## 2.7.3 (2022-10-23)
 
 ### Changes
+
 - Enhance Tags Support and Add Saved Searches [#8435, #8607]
 - Significant improvements to entry preview panel [#7993]
 - Add password strength indicator to all password fields [#7885]
@@ -182,6 +193,7 @@
 - FdoSecrets: Skip entries in recycle bin when searching [#8021]
 
 ### Fixes
+
 - Fix potential deadlock in UI when saving [#8606]
 - Fix newlines when copying notes from preview panel [#8542]
 - Fix dark mode detection on Linux [#8477]
@@ -205,6 +217,7 @@
 ## 2.7.1 (2022-04-05)
 
 ### Changes
+
 - Show when tags are changed in entry history [#7638]
 - Improve tags editing and allow spaces in tags [#7708]
 - Improve layout of entry preview panel [#7767]
@@ -212,6 +225,7 @@
 - Add expiration presets for 12 and 24 hours [#7738]
 
 ### Fixes
+
 - Fix crash when building history change list [#7638]
 - Fix hiding password on database unlock [#7725]
 - Fix AES KDF slow transform speed [#7755]
@@ -230,6 +244,7 @@
 ## 2.7.0 (2022-03-21)
 
 ### Major Additions
+
 - Implement KDBX 4.1 [#7114]
 - Add direct write save option for cloud storage and GVFS [#6594]
 - Prevent screen capture on Windows and macOS [#6030]
@@ -273,6 +288,7 @@
 - Reports: Add browser statistics report [#7197]
 
 ### Major Changes
+
 - Port crypto backend to [Botan](https://github.com/randombit/botan) [#6209]
 - Improve attachment handling and security [#6606][#5034][#7083]
 - Allow selecting any open database in unlock dialog [#5427]
@@ -285,6 +301,7 @@
 - Update D-Bus adaptor interface class name to match definition file [#7523]
 
 ### Other Changes and Fixes
+
 - Add countdown progress bar to TOTP preview [#6930]
 - Enter favicon url directly on icons page [#6614]
 - Set C++17 as standard in the build system [#7180]
@@ -709,7 +726,6 @@
 - CLI: Add group commands (mv, mkdir and rmdir) [#3313].
 - CLI: Add interactive shell mode command `open` [#3224]
 
-
 ### Changed
 
 - Redesign database unlock dialog [ #3287]
@@ -869,7 +885,6 @@
 - Add real names and Patreon supporters to about dialog #2214
 - Add settings button to toolbar, Donate button, and Report a Bug button to help menu #2214
 - Enhancements to release-tool to appsign intermediate build products #2101
-
 
 ## 2.3.3 (2018-05-09)
 

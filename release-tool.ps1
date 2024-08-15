@@ -52,7 +52,7 @@ param(
     [switch] $Snapshot,
     [Parameter(ParameterSetName = "build")]
     [switch] $SignBuild,
-    
+
     [Parameter(ParameterSetName = "build")]
     [string] $CMakeGenerator = "Ninja",
     [Parameter(ParameterSetName = "build")]
@@ -139,7 +139,7 @@ function Test-WorkingTreeClean {
 function Invoke-VSToolchain([String] $Toolchain, [String] $Path, [String] $Arch) {
     # Find Visual Studio installations
     $vs = Get-CimInstance MSFT_VSInstance -Namespace root/cimv2/vs
-  
+
     if ($vs.count -eq 0) {
         $err = "No Visual Studio installations found, download one from https://visualstudio.com/downloads."
         $err = "$err`nIf Visual Studio is installed, you may need to repair the install then restart."
@@ -155,7 +155,8 @@ function Invoke-VSToolchain([String] $Toolchain, [String] $Path, [String] $Arch)
                 break
             }
         }
-    } elseif ($vs.count -gt 1) {
+    }
+    elseif ($vs.count -gt 1) {
         # Ask the user which install to use
         $i = 0
         foreach ($_ in $vs) {
@@ -169,7 +170,7 @@ function Invoke-VSToolchain([String] $Toolchain, [String] $Path, [String] $Arch)
         }
         $VSBaseDir = $vs[$i].InstallLocation
     }
-    
+
     # Bootstrap the specified VS Toolchain
     Import-Module "$VSBaseDir\Common7\Tools\Microsoft.VisualStudio.DevShell.dll"
     Enter-VsDevShell -VsInstallPath $VSBaseDir -Arch $Arch -StartInPath $Path | Write-Host
@@ -186,7 +187,8 @@ function Invoke-Cmd([string] $command, [string[]] $options = @(), [switch] $mask
     }
     if ($quiet) {
         Invoke-Expression $call > $null
-    } else {
+    }
+    else {
         Invoke-Expression $call
     }
     if ($LASTEXITCODE -ne 0) {
@@ -199,7 +201,8 @@ function Find-SignCert() {
     $certs = Get-ChildItem Cert:\CurrentUser\My -codesign
     if ($certs.Count -eq 0) {
         throw "No code signing certificate found in User certificate store"
-    } elseif ($certs.Count -gt 1) {
+    }
+    elseif ($certs.Count -gt 1) {
         # Ask the user which to use
         $i = 0
         foreach ($_ in $certs) {
@@ -212,7 +215,8 @@ function Find-SignCert() {
             throw "Invalid selection made"
         }
         return $certs[$i]
-    } else {
+    }
+    else {
         Write-Host "Found signing certificate: $($certs[0].Subject) ($($certs[0].Thumbprint))" -ForegroundColor Cyan
         Write-Host
         return $certs[0]
@@ -225,7 +229,7 @@ function Invoke-SignFiles([string[]] $files, [X509Certificate] $cert, [string] $
     }
 
     Write-Host "Signing files using $($cert.Subject) ($($cert.Thumbprint))" -ForegroundColor Cyan
-    
+
     foreach ($_ in $files) {
         $sig = Get-AuthenticodeSignature -FilePath "$_" -ErrorAction SilentlyContinue
         if ($sig.Status -ne "Valid") {
@@ -325,10 +329,12 @@ if ($Merge) {
         if ($ReadLine) {
             if ($_ -match "^## ") {
                 $ReadLine = $false
-            } else {
+            }
+            else {
                 $Changelog += $_ + "`n"
             }
-        } elseif ($_ -match "$Version \(\d{4}-\d{2}-\d{2}\)") {
+        }
+        elseif ($_ -match "$Version \(\d{4}-\d{2}-\d{2}\)") {
             $ReadLine = $true
         }
     }
@@ -345,7 +351,8 @@ if ($Merge) {
     Write-Host "All done!"
     Write-Host "Please merge the release branch back into the develop branch now and then push your changes."
     Write-Host "Don't forget to also push the tags using 'git push --tags'."
-} elseif ($Build) {
+}
+elseif ($Build) {
     $Vcpkg = (Resolve-Path "$Vcpkg/scripts/buildsystems/vcpkg.cmake").Path
 
     # Find Visual Studio and establish build environment
@@ -363,22 +370,24 @@ if ($Merge) {
         $ReleaseName = "$Version-snapshot"
         $CMakeOptions = "-DKEEPASSXC_BUILD_TYPE=Snapshot -DOVERRIDE_VERSION=`"$ReleaseName`" $CMakeOptions"
         Write-Host "Using current branch '$SourceBranch' to build." -ForegroundColor Cyan
-    } else {
+    }
+    else {
         Test-WorkingTreeClean
 
         # Clear output directory
         if (Test-Path $OutDir) {
             Remove-Item $OutDir -Recurse
         }
-        
+
         if ($Version -match "-beta\d*$") {
             $CMakeOptions = "-DKEEPASSXC_BUILD_TYPE=PreRelease $CMakeOptions"
-        } else {
+        }
+        else {
             $CMakeOptions = "-DKEEPASSXC_BUILD_TYPE=Release $CMakeOptions"
         }
 
         # Setup Tag if not defined then checkout tag
-        if ($Tag -eq "" -or $Tag -eq $null) {
+        if ($Tag -eq "" -or $null -eq $Tag) {
             $Tag = $Version
         }
         Write-Host "Checking out tag 'tags/$Tag' to build." -ForegroundColor Cyan
@@ -404,12 +413,12 @@ if ($Merge) {
 
     Write-Host "Compiling sources..." -ForegroundColor Cyan
     Invoke-Cmd "cmake" "--build . --config Release -- $MakeOptions"
-    
+
     if ($SignBuild) {
         $VcpkgDir = $BuildDir + "\vcpkg_installed\"
         if (Test-Path $VcpkgDir) {
-            $files = Get-ChildItem $VcpkgDir -Filter "*.dll" -Recurse -File | 
-                Where-Object {$_.FullName -notlike "$VcpkgDir*debug\*" -and $_.FullName -notlike "$VcpkgDir*tools\*"} | 
+            $files = Get-ChildItem $VcpkgDir -Filter "*.dll" -Recurse -File |
+                Where-Object {$_.FullName -notlike "$VcpkgDir*debug\*" -and $_.FullName -notlike "$VcpkgDir*tools\*"} |
                 ForEach-Object {$_.FullName}
         }
         $files += Get-ChildItem "$BuildDir\src" -Include "*keepassxc*.exe", "*keepassxc*.dll" -Recurse -File | ForEach-Object { $_.FullName }
