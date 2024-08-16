@@ -6,7 +6,8 @@ version: "3"
 vars:
   VCPKG_BOOTSTRAP_BAT: "{{.TASKFILE_DIR}}/cmake/vcpkg/bootstrap-vcpkg.bat"
   VCPKG_BOOTSTRAP_SH: "{{.TASKFILE_DIR}}/cmake/vcpkg/bootstrap-vcpkg.sh"
-  VCPKG_EXE: "{{.TASKFILE_DIR}}/cmake/vcpkg/vcpkg.exe"
+  VCPKG_BOOTSTRAP: '{{if eq OS "windows"}}{{.VCPKG_BOOTSTRAP_BAT}}{{else}}{{.VCPKG_BOOTSTRAP_SH}}{{end}}'
+  VCPKG_EXE: "{{.TASKFILE_DIR}}/cmake/vcpkg/vcpkg{{exeExt}}"
 
   VCPKG_CACHE_ROOT_WINDOWS: "m:\\cache\\vcpkg-data"
   VCPKG_CACHE_ROOT_UNIX: "/tmp/vcpkg"
@@ -17,7 +18,7 @@ vars:
   OUTPUT_EXE_PATH: >-
     target/debug/aw_models.dll
   RUN_WINDOWS: "cmd /d /e:on /c"
-  RUN_UNIX: "sh -c"
+  RUN_UNIX: "bash -c"
   RUN: '{{if eq OS "windows"}}{{.RUN_WINDOWS}}{{ else }}{{.RUN_UNIX}}{{ end }}'
 
 tasks:
@@ -62,6 +63,7 @@ tasks:
   vcpkg:
     deps: [vcpkg-download]
     vars:
+      VCPKG_ROOT: '{{joinPath .TASKFILE_DIR "cmake" "vcpkg"}}'
       VCPKG_BUILDTREES_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "buildtrees" }}'
       VCPKG_DOWNLOADS_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "downloads" }}'
       VCPKG_INSTALL_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "install" }}'
@@ -75,14 +77,19 @@ tasks:
       VCPKG_DEFAULT_BINARY_CACHE: '{{ .VCPKG_BINARY_CACHE_ROOT }}'
       VCPKG_DEFAULT_INSTALL_ROOT: '{{ .VCPKG_INSTALL_ROOT }}'
     cmds:
-      - cmd: |
-          {{.RUN}} "{{ fromSlash .VCPKG_EXE }}" \
-            --vcpkg-root "{{ fromSlash .VCPKG_ROOT }}" \
-            --downloads-root="{{ fromSlash .VCPKG_DOWNLOADS_ROOT }}" \
-            --x-buildtrees-root="{{ fromSlash .VCPKG_BUILDTREES_ROOT }}" \
-            --x-install-root="{{ fromSlash .VCPKG_INSTALL_ROOT }}" \
-            --x-packages-root="{{ fromSlash .VCPKG_PACKAGES_ROOT }}" \
-            {{coalesce .VCPKG_ARGS .CLI_ARGS}}
+      - cmd: mkdir -p "{{.VCPKG_BUILDTREES_ROOT}}" "{{.VCPKG_DOWNLOADS_ROOT}}" "{{.VCPKG_INSTALL_ROOT}}" "{{.VCPKG_PACKAGES_ROOT}}" "{{.VCPKG_BINARY_CACHE_ROOT}}"
+        ignore_error: true
+      - cmd: >-
+          {{.RUN}}
+          "
+          "{{ fromSlash .VCPKG_EXE }}"
+          --vcpkg-root "{{ fromSlash .VCPKG_ROOT }}"
+          --downloads-root="{{ fromSlash .VCPKG_DOWNLOADS_ROOT }}"
+          --x-buildtrees-root="{{ fromSlash .VCPKG_BUILDTREES_ROOT }}"
+          --x-install-root="{{ fromSlash .VCPKG_INSTALL_ROOT }}"
+          --x-packages-root="{{ fromSlash .VCPKG_PACKAGES_ROOT }}"
+          {{coalesce .VCPKG_ARGS .CLI_ARGS}}
+          "
 
   vcpkg-integrate:
     deps: [vcpkg-download]
@@ -112,7 +119,7 @@ tasks:
     env:
       VCPKG_ROOT: '{{joinPath .TASKFILE_DIR "cmake" "vcpkg"}}'
     cmds:
-      - cmd: '{{.RUN}} "{{ fromSlash .VCPKG_BOOTSTRAP_BAT }}" -disableMetrics'
+      - cmd: '{{.RUN}} "{{ fromSlash .VCPKG_BOOTSTRAP }}" -disableMetrics'
 
   yarn-install:
     sources:
@@ -142,20 +149,22 @@ tasks:
       VCPKG_BINARY_CACHE_ROOT: '{{ joinPath .VCPKG_CACHE_ROOT "archives" }}'
     env:
       VCPKG_ROOT: '{{joinPath .TASKFILE_DIR "cmake" "vcpkg"}}'
-      X_VCPKG_ASSET_SOURCES: 'x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES_ROOT}}/,,readwrite'
+      # X_VCPKG_ASSET_SOURCES: 'x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES_ROOT}}/,,readwrite'
       VCPKG_DOWNLOADS: '{{ .VCPKG_DOWNLOADS_ROOT }}'
       VCPKG_DEFAULT_BINARY_CACHE: '{{ .VCPKG_BINARY_CACHE_ROOT }}'
       VCPKG_DEFAULT_INSTALL_ROOT: '{{ .VCPKG_INSTALL_ROOT }}'
     cmds:
+      - cmd: mkdir -p "{{.VCPKG_BUILDTREES_ROOT}}" "{{.VCPKG_DOWNLOADS_ROOT}}" "{{.VCPKG_INSTALL_ROOT}}" "{{.VCPKG_PACKAGES_ROOT}}" "{{.VCPKG_BINARY_CACHE_ROOT}}"
+        ignore_error: true
       # - cmd: cmd.exe /D /C rmdir /s /q "{{joinPath .TASKFILE_DIR ".build" | fromSlash}}"
       #   silent: true
       #   ignore_error: true
       #      -G "Visual Studio 17 2022" -A x64 \
+      #      -DX_VCPKG_ASSET_SOURCES="x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES_ROOT}}/,,readwrite" \
       - cmd: |
           cmake \
             -DWITH_XC_ALL=ON -DWITH_TESTS=OFF -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE="{{joinPath .TASKFILE_DIR "cmake" "vcpkg" "scripts" "buildsystems" "vcpkg.cmake" | toSlash }}" \
-            -DX_VCPKG_ASSET_SOURCES="x-azurl,file:///{{toSlash .VCPKG_ASSET_SOURCES_ROOT}}/,,readwrite" \
             -DX_VCPKG_APPLOCAL_DEPS_INSTALL=ON \
             -DWITH_XC_YUBIKEY=OFF \
             -DWITH_XC_FDOSECRETS=OFF \

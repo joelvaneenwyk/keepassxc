@@ -106,6 +106,7 @@ make_release.sh                 export-ignore
 AppImage-Recipe.sh              export-ignore
 
 release-tool                    text eol=lf
+release-tool.ps1                text eol=lf
 
 # github-linguist language hints
 *.h                             linguist-language=C++

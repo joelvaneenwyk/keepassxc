@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "release-tool": "shellscript",
+    "COPYING": "plaintext",
+    "LICENSE.*": "plaintext",
+    "*.DotSettings": "xml",
+    "config": "toml",
+    ".gitattributes": "properties"
+  }
+}

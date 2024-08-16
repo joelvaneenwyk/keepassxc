@@ -37,6 +37,8 @@ cimv
 CLEARFIELD
 codesign
 coreutils
+cpack
+CTEST
 DACL
 dansk
 datetimes

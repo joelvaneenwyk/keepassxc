@@ -1,5 +1,7 @@
 # Changelog
 
+<!-- markdownlint-disable MD024 MD052 -->
+
 ## 2.7.8 (2024-05-05)
 
 ### Changes

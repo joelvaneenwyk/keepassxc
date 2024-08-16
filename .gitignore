@@ -6,7 +6,6 @@ release*/
 *.iml
 *.kdev4
 
-\.vscode/
 *.swp
 
 .DS_Store
@@ -33,3 +32,4 @@ vcpkg_installed*/
 
 .build/
 .task/
+.git/
