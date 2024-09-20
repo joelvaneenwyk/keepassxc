@@ -43,10 +43,11 @@ jobs:
         submodules: recursive
 
     - name: Install dependencies
+      shell: bash
       run: |
         sudo apt update
         sudo apt install --no-install-recommends --yes \
-          build-essential cmake g++
+          build-essential cmake g++ \
           qtbase5-dev qtbase5-private-dev qttools5-dev \
           qttools5-dev-tools libqt5svg5-dev libargon2-dev \
           libkeyutils-dev libminizip-dev libbotan-2-dev \
