@@ -3,8 +3,6 @@
 # KeePassXC <img src="https://keepassxc.org/assets/img/keepassxc.svg" width="25" height="25" />
 
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/6326/badge)](https://bestpractices.coreinfrastructure.org/projects/6326)
-[![TeamCity Build Status](https://ci.keepassxc.org/app/rest/builds/buildType:\(project:KeepassXC\)/statusIcon)](https://ci.keepassxc.org/?guest=1)
-[![codecov](https://codecov.io/gh/keepassxreboot/keepassxc/branch/develop/graph/badge.svg)](https://codecov.io/gh/keepassxreboot/keepassxc)
 [![GitHub release](https://img.shields.io/github/release/keepassxreboot/keepassxc)](https://github.com/keepassxreboot/keepassxc/releases/)
 
 [![Matrix community channel](https://img.shields.io/matrix/keepassxc:matrix.org?label=Community%20channel)](https://app.element.io/#/room/#keepassxc:mozilla.org)
@@ -33,18 +31,18 @@ KeePassXC has numerous features for novice and power users alike. Our goal is to
 
 ### Advanced
 
-- Database reports (password health, HIBP, and statistics)
-- Database export to CSV and HTML formats
-- TOTP storage and generation
+- Database reports (password health, `HIBP`, and statistics)
+- Database export to `CSV` and `HTML` formats
+- `TOTP` storage and generation
 - Field references between entries
 - File attachments and custom attributes
 - Entry history and data restoration
-- YubiKey/OnlyKey challenge-response support
+- `YubiKey`/`OnlyKey` challenge-response support
 - Command line interface (`keepassxc-cli`)
 - Auto-Open databases
-- KeeShare shared databases (import, export, and synchronize)
-- SSH Agent integration
-- FreeDesktop.org Secret Service (replace Gnome keyring, etc.)
+- `KeeShare` shared databases (import, export, and synchronize)
+- `SSH Agent` integration
+- `FreeDesktop.org Secret Service` (replace Gnome keyring, etc.)
 - Additional encryption choices: `Twofish` and `ChaCha20`
 
 For a full list of changes, read the [CHANGELOG](CHANGELOG.md) document. \
@@ -56,7 +54,7 @@ Detailed instructions are available in the [Build and Install](./INSTALL.md) pag
 
 ## Contributing
 
-We are always looking for suggestions on how to improve KeePassXC. If you find any bugs or have an idea for a new feature, please let us know by opening a report in the [issue tracker](https://github.com/keepassxreboot/keepassxc/issues) on GitHub, or join us on [Matrix community channel](https://matrix.to/#/!zUxwGnFkUyycpxeHeM:matrix.org?via=matrix.org) or [Matrix development channel](https://matrix.to/#/!RhJPJPGwQIFVQeXqZa:matrix.org?via=matrix.org), or on IRC in [Libera.Chat](https://web.libera.chat/) channels #keepassxc and #keepassxc-dev.
+We are always looking for suggestions on how to improve `KeePassXC`. If you find any bugs or have an idea for a new feature, please let us know by opening a report in the [issue tracker](https://github.com/keepassxreboot/keepassxc/issues) on GitHub, or join us on [Matrix community channel](https://matrix.to/#/!zUxwGnFkUyycpxeHeM:matrix.org?via=matrix.org) or [Matrix development channel](https://matrix.to/#/!RhJPJPGwQIFVQeXqZa:matrix.org?via=matrix.org), or on IRC in [Libera.Chat](https://web.libera.chat/) channels #keepassxc and #keepassxc-dev.
 
 You may directly contribute your own code by submitting a pull request. Please read the [CONTRIBUTING](.github/CONTRIBUTING.md) document for further information.
 
@@ -64,4 +62,4 @@ Contributors are required to adhere to the project's [Code of Conduct](CODE-OF-C
 
 ## License
 
-KeePassXC code is licensed under GPL-2 or GPL-3. Additional licensing for third-party files is detailed in [COPYING](./COPYING).
+`KeePassXC` code is licensed under GPL-2 or GPL-3. Additional licensing for third-party files is detailed in [COPYING](./COPYING).
