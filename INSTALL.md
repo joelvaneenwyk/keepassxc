@@ -73,7 +73,7 @@ When building with ASAN support on macOS, you need to use `export ASAN_OPTIONS=d
 
 ## Windows Build Notes
 
-If you are using MSYS2, you have to add ```-G "MSYS Makefiles"``` at the beginning of the cmake command.
+If you are using MSYS2, you have to add `-G "MSYS Makefiles"` at the beginning of the cmake command.
 
 ## CMake Configuration Options
 
