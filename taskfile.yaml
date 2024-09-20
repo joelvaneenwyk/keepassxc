@@ -3,13 +3,16 @@
 
 version: "3"
 
+env:
+  PATH: $PATH;$USERPROFILE\scoop\apps\ruby\current\bin;$USERPROFILE%\scoop\persist\ruby\gems\bin
+
 vars:
   VCPKG_BOOTSTRAP_BAT: "{{.TASKFILE_DIR}}/cmake/vcpkg/bootstrap-vcpkg.bat"
   VCPKG_BOOTSTRAP_SH: "{{.TASKFILE_DIR}}/cmake/vcpkg/bootstrap-vcpkg.sh"
   VCPKG_BOOTSTRAP: '{{if eq OS "windows"}}{{.VCPKG_BOOTSTRAP_BAT}}{{else}}{{.VCPKG_BOOTSTRAP_SH}}{{end}}'
   VCPKG_EXE: "{{.TASKFILE_DIR}}/cmake/vcpkg/vcpkg{{exeExt}}"
 
-  VCPKG_CACHE_ROOT_WINDOWS: "m:\\cache\\vcpkg-data"
+  VCPKG_CACHE_ROOT_WINDOWS: "e:\\cache\\vcpkg-data"
   VCPKG_CACHE_ROOT_UNIX: "/tmp/vcpkg"
   VCPKG_CACHE_ROOT: '{{if eq OS "windows"}}{{.VCPKG_CACHE_ROOT_WINDOWS}}{{else}}{{.VCPKG_CACHE_ROOT_UNIX}}{{end}}'
 
@@ -82,12 +85,12 @@ tasks:
       - cmd: >-
           {{.RUN}}
           "
-          "{{ fromSlash .VCPKG_EXE }}"
-          --vcpkg-root "{{ fromSlash .VCPKG_ROOT }}"
-          --downloads-root="{{ fromSlash .VCPKG_DOWNLOADS_ROOT }}"
-          --x-buildtrees-root="{{ fromSlash .VCPKG_BUILDTREES_ROOT }}"
-          --x-install-root="{{ fromSlash .VCPKG_INSTALL_ROOT }}"
-          --x-packages-root="{{ fromSlash .VCPKG_PACKAGES_ROOT }}"
+          "{{ fromSlash .VCPKG_EXE | shellQuote }}"
+          --vcpkg-root "{{ fromSlash .VCPKG_ROOT | shellQuote }}"
+          --downloads-root="{{ fromSlash .VCPKG_DOWNLOADS_ROOT | shellQuote }}"
+          --x-buildtrees-root="{{ fromSlash .VCPKG_BUILDTREES_ROOT | shellQuote }}"
+          --x-install-root="{{ fromSlash .VCPKG_INSTALL_ROOT | shellQuote }}"
+          --x-packages-root="{{ fromSlash .VCPKG_PACKAGES_ROOT | shellQuote }}"
           {{coalesce .VCPKG_ARGS .CLI_ARGS}}
           "
 
@@ -164,7 +167,7 @@ tasks:
       - cmd: |
           cmake \
             -DWITH_XC_ALL=ON -DWITH_TESTS=OFF -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE="{{joinPath .TASKFILE_DIR "cmake" "vcpkg" "scripts" "buildsystems" "vcpkg.cmake" | toSlash }}" \
+            -DCMAKE_TOOLCHAIN_FILE="{{joinPath .TASKFILE_DIR "cmake" "vcpkg" "scripts" "buildsystems" "vcpkg.cmake" }}" \
             -DX_VCPKG_APPLOCAL_DEPS_INSTALL=ON \
             -DWITH_XC_YUBIKEY=OFF \
             -DWITH_XC_FDOSECRETS=OFF \
