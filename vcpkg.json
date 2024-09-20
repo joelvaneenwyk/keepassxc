@@ -36,10 +36,12 @@
     },
     {
       "name": "qt5",
+      "platform": "windows | osx",
       "version>=": "5.15.11"
     },
     {
       "name": "qt5-imageformats",
+      "platform": "windows | osx",
       "version>=": "5.15.11"
     },
     {
@@ -49,14 +51,17 @@
     },
     {
       "name": "qt5-svg",
+      "platform": "windows | osx",
       "version>=": "5.15.11"
     },
     {
       "name": "qt5-tools",
+      "platform": "windows | osx",
       "version>=": "5.15.11"
     },
     {
       "name": "qt5-translations",
+      "platform": "windows | osx",
       "version>=": "5.15.11"
     },
     {
