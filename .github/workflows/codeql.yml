@@ -9,8 +9,55 @@ on:
     - cron: '44 12 * * 4'
 
 jobs:
+  build:
+    name: Build // ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-latest
+          build-mode: manual
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+
+    - name: Install dependencies
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt install --no-install-recommends --yes \
+          build-essential cmake g++ \
+          qtbase5-dev qtbase5-private-dev qttools5-dev \
+          qttools5-dev-tools libqt5svg5-dev libargon2-dev \
+          libkeyutils-dev libminizip-dev libbotan-2-dev \
+          libqrencode-dev zlib1g-dev asciidoctor libreadline-dev \
+          libpcsclite-dev libusb-1.0-0-dev libxi-dev libxtst-dev \
+          libqt5x11extras5-dev
+
+    - shell: bash
+      name: Configure
+      run: |
+        cmake -DWITH_XC_ALL=ON -DWITH_TESTS=OFF -B .build -S .
+
+    - shell: bash
+      name: Build
+      run: |
+        cmake --build .build
+
   analyze:
     name: Analyze (${{ matrix.language }})
+    needs: build
     runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
     permissions:
       # required for all workflows
