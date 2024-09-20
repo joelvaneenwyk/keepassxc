@@ -40,7 +40,7 @@ namespace
             return group;
         }
 
-        auto nameList = groupPath.split("/", QString::SkipEmptyParts);
+        auto nameList = groupPath.split("/", Qt::SkipEmptyParts);
         // Skip over first group name if root
         if (nameList.first().compare("root", Qt::CaseInsensitive) == 0) {
             nameList.removeFirst();
@@ -77,12 +77,7 @@ CsvImportWidget::CsvImportWidget(QWidget* parent)
                    << QObject::tr("URL") << QObject::tr("Notes") << QObject::tr("TOTP") << QObject::tr("Icon")
                    << QObject::tr("Last Modified") << QObject::tr("Created");
 
-    m_fieldSeparatorList << ","
-                         << ";"
-                         << "-"
-                         << ":"
-                         << "."
-                         << "\t";
+    m_fieldSeparatorList << "," << ";" << "-" << ":" << "." << "\t";
 
     m_combos << m_ui->groupCombo << m_ui->titleCombo << m_ui->usernameCombo << m_ui->passwordCombo << m_ui->urlCombo
              << m_ui->notesCombo << m_ui->totpCombo << m_ui->iconCombo << m_ui->lastModifiedCombo << m_ui->createdCombo;

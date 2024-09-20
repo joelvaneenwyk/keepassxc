@@ -41,9 +41,7 @@
 
 #ifdef Q_OS_MACOS
 #include <QMainWindow>
-#if QT_VERSION >= QT_VERSION_CHECK(5, 9, 0)
 #include <QOperatingSystemVersion>
-#endif
 #endif
 
 #include "gui/Icons.h"
@@ -51,15 +49,6 @@
 QT_BEGIN_NAMESPACE
 Q_GUI_EXPORT int qt_defaultDpiX();
 QT_END_NAMESPACE
-
-// Redefine Q_FALLTHROUGH for older Qt versions
-#ifndef Q_FALLTHROUGH
-#if (defined(Q_CC_GNU) && Q_CC_GNU >= 700) && !defined(Q_CC_INTEL)
-#define Q_FALLTHROUGH() __attribute__((fallthrough))
-#else
-#define Q_FALLTHROUGH() (void)0
-#endif
-#endif
 
 namespace Phantom
 {
@@ -1033,15 +1022,6 @@ namespace Phantom
             painter->restore();
         }
 
-        int fontMetricsWidth(const QFontMetrics& fontMetrics, const QString& text)
-        {
-#if QT_VERSION < QT_VERSION_CHECK(5, 11, 0)
-            return fontMetrics.width(text, text.size(), Qt::TextBypassShaping);
-#else
-            return fontMetrics.horizontalAdvance(text);
-#endif
-        }
-
         // This always draws the arrow with the correct aspect ratio, even if the
         // provided bounding rect is non-square. The base edge of the triangle is
         // snapped to a whole pixel to avoid anti-aliasing making it look soft.
@@ -1476,13 +1456,13 @@ void BaseStyle::drawPrimitive(PrimitiveElement elem,
     }
     case PE_FrameDockWidget: {
         painter->save();
-        QColor softshadow = option->palette.background().color().darker(120);
+        QColor softshadow = option->palette.window().color().darker(120);
         QRect r = option->rect;
         painter->setPen(softshadow);
         painter->drawRect(r.adjusted(0, 0, -1, -1));
         painter->setPen(QPen(option->palette.light(), 1));
         painter->drawLine(QPoint(r.left() + 1, r.top() + 1), QPoint(r.left() + 1, r.bottom() - 1));
-        painter->setPen(QPen(option->palette.background().color().darker(120)));
+        painter->setPen(QPen(option->palette.window().color().darker(120)));
         painter->drawLine(QPoint(r.left() + 1, r.bottom() - 1), QPoint(r.right() - 2, r.bottom() - 1));
         painter->drawLine(QPoint(r.right() - 1, r.top() + 1), QPoint(r.right() - 1, r.bottom() - 1));
         painter->restore();
@@ -1734,12 +1714,12 @@ void BaseStyle::drawPrimitive(PrimitiveElement elem,
             // TODO replace with new code
             const int margin = 6;
             const int offset = r.height() / 2;
-            painter->setPen(QPen(option->palette.background().color().darker(110)));
+            painter->setPen(QPen(option->palette.window().color().darker(110)));
             painter->drawLine(r.topLeft().x() + margin,
                               r.topLeft().y() + offset,
                               r.topRight().x() - margin,
                               r.topRight().y() + offset);
-            painter->setPen(QPen(option->palette.background().color().lighter(110)));
+            painter->setPen(QPen(option->palette.window().color().lighter(110)));
             painter->drawLine(r.topLeft().x() + margin,
                               r.topLeft().y() + offset + 1,
                               r.topRight().x() - margin,
@@ -3268,13 +3248,13 @@ void BaseStyle::drawComplexControl(ComplexControl control,
         QColor outline = option->palette.dark().color();
 
         QColor titleBarFrameBorder(active ? highlight.darker(180) : outline.darker(110));
-        QColor titleBarHighlight(active ? highlight.lighter(120) : palette.background().color().lighter(120));
+        QColor titleBarHighlight(active ? highlight.lighter(120) : palette.window().color().lighter(120));
         QColor textColor(active ? 0xffffff : 0xff000000);
         QColor textAlphaColor(active ? 0xffffff : 0xff000000);
 
         {
             // Fill title
-            auto titlebarColor = QColor(active ? highlight : palette.background().color());
+            auto titlebarColor = QColor(active ? highlight : palette.window().color());
             painter->fillRect(option->rect.adjusted(1, 1, -1, 0), titlebarColor);
             // Frame and rounded corners
             painter->setPen(titleBarFrameBorder);
@@ -3886,11 +3866,9 @@ int BaseStyle::pixelMetric(PixelMetric metric, const QStyleOption* option, const
     case PM_DockWidgetTitleBarButtonMargin:
         val = 2;
         break;
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
     case PM_TitleBarButtonSize:
         val = 19;
         break;
-#endif
     case PM_MaximumDragDistance:
         return -1; // Do not dpi-scale because the value is magic
     case PM_TabCloseIndicatorWidth:
@@ -4381,7 +4359,7 @@ QRect BaseStyle::subControlRect(ComplexControl control,
             int textHeight = option->fontMetrics.height();
             // width()/horizontalAdvance() is faster than size() and good enough for
             // us, since we only support a single line of text here anyway.
-            int textWidth = Phantom::fontMetricsWidth(option->fontMetrics, groupBox->text);
+            int textWidth = option->fontMetrics.horizontalAdvance(groupBox->text);
             int indicatorWidth = proxy()->pixelMetric(PM_IndicatorWidth, option, widget);
             int indicatorHeight = proxy()->pixelMetric(PM_IndicatorHeight, option, widget);
             int margin = 0;
@@ -4624,10 +4602,8 @@ int BaseStyle::styleHint(StyleHint hint,
         return Phantom::ShowItemViewDecorationSelected;
     case SH_ItemView_MovementWithoutUpdatingSelection:
         return 1;
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 7, 0))
     case SH_ItemView_ScrollMode:
         return QAbstractItemView::ScrollPerPixel;
-#endif
     case SH_ScrollBar_ContextMenu:
 #ifdef Q_OS_MAC
         return 0;

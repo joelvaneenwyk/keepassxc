@@ -116,6 +116,7 @@ public:
         Security_LockDatabaseIdleSeconds,
         Security_LockDatabaseMinimize,
         Security_LockDatabaseScreenLock,
+        Security_LockDatabaseOnUserSwitch,
         Security_RelockAutoType,
         Security_PasswordsHidden,
         Security_PasswordEmptyPlaceholder,
@@ -194,7 +195,6 @@ public:
         PasswordGenerator_Type,
 
         Messages_NoLegacyKeyFileWarning,
-        Messages_Qt55CompatibilityWarning,
         Messages_HidePreReleaseWarning,
 
         // Special internal value

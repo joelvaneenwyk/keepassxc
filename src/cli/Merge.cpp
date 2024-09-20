@@ -18,13 +18,13 @@
 #include "Merge.h"
 
 #include "Utils.h"
+#include "core/Global.h"
 #include "core/Merger.h"
 
 #include <QCommandLineParser>
 
 const QCommandLineOption Merge::SameCredentialsOption =
-    QCommandLineOption(QStringList() << "s"
-                                     << "same-credentials",
+    QCommandLineOption(QStringList() << "s" << "same-credentials",
                        QObject::tr("Use the same credentials for both database files."));
 
 const QCommandLineOption Merge::KeyFileFromOption =
@@ -37,7 +37,7 @@ const QCommandLineOption Merge::NoPasswordFromOption =
                        QObject::tr("Deactivate password key for the database to merge from."));
 
 const QCommandLineOption Merge::DryRunOption =
-    QCommandLineOption(QStringList() << "dry-run",
+    QCommandLineOption(QStringList() << "d" << "dry-run",
                        QObject::tr("Only print the changes detected by the merge operation."));
 
 const QCommandLineOption Merge::YubiKeyFromOption(QStringList() << "yubikey-from",
@@ -90,18 +90,18 @@ int Merge::executeWithDatabase(QSharedPointer<Database> database, QSharedPointer
     QStringList changeList = merger.merge();
 
     for (auto& mergeChange : changeList) {
-        out << "\t" << mergeChange << endl;
+        out << "\t" << mergeChange << Qt::endl;
     }
 
     if (!changeList.isEmpty() && !parser->isSet(Merge::DryRunOption)) {
         QString errorMessage;
         if (!database->save(Database::Atomic, {}, &errorMessage)) {
-            err << QObject::tr("Unable to save database to file : %1").arg(errorMessage) << endl;
+            err << QObject::tr("Unable to save database to file : %1").arg(errorMessage) << Qt::endl;
             return EXIT_FAILURE;
         }
-        out << QObject::tr("Successfully merged %1 into %2.").arg(fromDatabasePath, toDatabasePath) << endl;
+        out << QObject::tr("Successfully merged %1 into %2.").arg(fromDatabasePath, toDatabasePath) << Qt::endl;
     } else {
-        out << QObject::tr("Database was not modified by merge operation.") << endl;
+        out << QObject::tr("Database was not modified by merge operation.") << Qt::endl;
     }
 
     return EXIT_SUCCESS;

@@ -25,9 +25,9 @@
 #include "BrowserMessageBuilder.h"
 #include "BrowserSettings.h"
 #include "core/Tools.h"
-#include "core/UrlTools.h"
 #include "gui/MainWindow.h"
 #include "gui/MessageBox.h"
+#include "gui/UrlTools.h"
 #include "gui/osutils/OSUtils.h"
 #ifdef WITH_XC_BROWSER_PASSKEYS
 #include "BrowserPasskeys.h"
@@ -48,6 +48,7 @@
 #include <QJsonObject>
 #include <QListWidget>
 #include <QLocalSocket>
+#include <QLocale>
 #include <QProgressDialog>
 #include <QUrl>
 
@@ -601,7 +602,7 @@ QString BrowserService::storeKey(const QString& key)
     hideWindow();
     db->metadata()->customData()->set(CustomData::BrowserKeyPrefix + id, key);
     db->metadata()->customData()->set(QString("%1_%2").arg(CustomData::Created, id),
-                                      Clock::currentDateTime().toString(Qt::SystemLocaleShortDate));
+                                      QLocale::system().toString(Clock::currentDateTime(), QLocale::ShortFormat));
     return id;
 }
 
@@ -974,6 +975,15 @@ bool BrowserService::deleteEntry(const QString& uuid)
 
     db->recycleEntry(entry);
     return true;
+}
+
+void BrowserService::removePluginData(Entry* entry) const
+{
+    if (entry) {
+        entry->beginUpdate();
+        entry->customData()->remove(BrowserService::KEEPASSXCBROWSER_NAME);
+        entry->endUpdate();
+    }
 }
 
 QList<Entry*> BrowserService::searchEntries(const QSharedPointer<Database>& db,

@@ -26,6 +26,7 @@
 
 #include "config-keepassx-tests.h"
 
+#include "core/Global.h"
 #include "core/Tools.h"
 #include "crypto/Crypto.h"
 #include "gui/Application.h"
@@ -46,10 +47,8 @@
 
 int main(int argc, char* argv[])
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
     Application app(argc, argv);
     app.setApplicationName("KeePassXC");
     app.setApplicationVersion(KEEPASSXC_VERSION);
@@ -120,8 +119,8 @@ class FakeClient : public DBusClient
 public:
     explicit FakeClient(DBusMgr* dbus)
         : DBusClient(
-            dbus,
-            {QStringLiteral("local"), 0, true, {ProcInfo{0, 0, QStringLiteral("fake-client"), QString{}, QString{}}}})
+              dbus,
+              {QStringLiteral("local"), 0, true, {ProcInfo{0, 0, QStringLiteral("fake-client"), QString{}, QString{}}}})
     {
     }
 };
@@ -1248,7 +1247,7 @@ void TestGuiFdoSecrets::testItemReplace()
     {
         DBUS_GET2(unlocked, locked, service->SearchItems({{"application", "fdosecrets-test"}}));
         QSet<QDBusObjectPath> expected{QDBusObjectPath(item1->path()), QDBusObjectPath(item2->path())};
-        COMPARE(QSet<QDBusObjectPath>::fromList(unlocked), expected);
+        COMPARE(Tools::asSet(unlocked), expected);
     }
 
     QSignalSpy spyItemCreated(coll.data(), SIGNAL(ItemCreated(QDBusObjectPath)));
@@ -1265,7 +1264,7 @@ void TestGuiFdoSecrets::testItemReplace()
         // there are still 2 entries
         DBUS_GET2(unlocked, locked, service->SearchItems({{"application", "fdosecrets-test"}}));
         QSet<QDBusObjectPath> expected{QDBusObjectPath(item1->path()), QDBusObjectPath(item2->path())};
-        COMPARE(QSet<QDBusObjectPath>::fromList(unlocked), expected);
+        COMPARE(Tools::asSet(unlocked), expected);
 
         VERIFY(waitForSignal(spyItemCreated, 0));
         // there may be multiple changed signals, due to each item attribute is set separately
@@ -1291,7 +1290,7 @@ void TestGuiFdoSecrets::testItemReplace()
             QDBusObjectPath(item2->path()),
             QDBusObjectPath(item4->path()),
         };
-        COMPARE(QSet<QDBusObjectPath>::fromList(unlocked), expected);
+        COMPARE(Tools::asSet(unlocked), expected);
 
         VERIFY(waitForSignal(spyItemCreated, 1));
         {
@@ -1619,7 +1618,7 @@ void TestGuiFdoSecrets::testExposeSubgroup()
     for (const auto& itemPath : itemPaths) {
         exposedEntries << m_plugin->dbus()->pathToObject<Item>(itemPath)->backend();
     }
-    COMPARE(exposedEntries, QSet<Entry*>::fromList(subgroup->entries()));
+    COMPARE(exposedEntries, Tools::asSet(subgroup->entries()));
 }
 
 void TestGuiFdoSecrets::testModifyingExposedGroup()

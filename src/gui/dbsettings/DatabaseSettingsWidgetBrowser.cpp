@@ -82,7 +82,7 @@ void DatabaseSettingsWidgetBrowser::showEvent(QShowEvent* event)
     QWidget::showEvent(event);
 }
 
-bool DatabaseSettingsWidgetBrowser::save()
+bool DatabaseSettingsWidgetBrowser::saveSettings()
 {
     return true;
 }
@@ -214,9 +214,7 @@ void DatabaseSettingsWidgetBrowser::removeStoredPermissions()
         }
 
         if (entry->customData()->contains(BrowserService::KEEPASSXCBROWSER_NAME)) {
-            entry->beginUpdate();
-            entry->customData()->remove(BrowserService::KEEPASSXCBROWSER_NAME);
-            entry->endUpdate();
+            browserService()->removePluginData(entry);
             ++counter;
         }
         progress.setValue(progress.value() + 1);

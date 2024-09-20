@@ -42,8 +42,7 @@ void TestSSHAgent::initTestCase()
     QVERIFY(m_agentSocketFile.remove());
 
     QStringList arguments;
-    arguments << "-D"
-              << "-a" << m_agentSocketFileName;
+    arguments << "-D" << "-a" << m_agentSocketFileName;
 
     QElapsedTimer timer;
     timer.start();
@@ -57,7 +56,7 @@ void TestSSHAgent::initTestCase()
         QSKIP("ssh-agent could not be started");
     }
 
-    qDebug() << "ssh-agent started as pid" << m_agentProcess.pid();
+    qDebug() << "ssh-agent started as pid" << m_agentProcess.processId();
 
     // we need to wait for the agent to open the socket before going into real tests
     QFileInfo socketFileInfo(m_agentSocketFileName);
@@ -288,7 +287,7 @@ void TestSSHAgent::testKeyGenEd25519()
 void TestSSHAgent::cleanupTestCase()
 {
     if (m_agentProcess.state() != QProcess::NotRunning) {
-        qDebug() << "Killing ssh-agent pid" << m_agentProcess.pid();
+        qDebug() << "Killing ssh-agent pid" << m_agentProcess.processId();
         m_agentProcess.terminate();
         m_agentProcess.waitForFinished();
     }

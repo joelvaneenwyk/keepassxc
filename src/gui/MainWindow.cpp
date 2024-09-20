@@ -38,7 +38,6 @@
 #include "autotype/AutoType.h"
 #include "core/InactivityTimer.h"
 #include "core/Resources.h"
-#include "core/Tools.h"
 #include "gui/AboutDialog.h"
 #include "gui/ActionCollection.h"
 #include "gui/Icons.h"
@@ -51,7 +50,7 @@
 
 #ifdef WITH_XC_UPDATECHECK
 #include "gui/UpdateCheckDialog.h"
-#include "updatecheck/UpdateChecker.h"
+#include "networking/UpdateChecker.h"
 #endif
 
 #ifdef WITH_XC_SSHAGENT
@@ -73,34 +72,11 @@
 
 #ifdef WITH_XC_BROWSER
 #include "browser/BrowserService.h"
-#include "browser/BrowserSettingsPage.h"
 #endif
 
 #if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS) && !defined(QT_NO_DBUS)
 #include "mainwindowadaptor.h"
 #endif
-
-// This filter gets installed on all the QAction objects within the MainWindow.
-bool ActionEventFilter::eventFilter(QObject* watched, QEvent* event)
-{
-    auto databaseWidget = getMainWindow()->m_ui->tabWidget->currentDatabaseWidget();
-    if (databaseWidget && event->type() == QEvent::Shortcut) {
-        // We check if we got a Shortcut event that uses the same key sequence as the
-        // OS default copy-to-clipboard shortcut.
-        static const auto stdCopyShortcuts = QKeySequence::keyBindings(QKeySequence::Copy);
-        if (stdCopyShortcuts.contains(static_cast<QShortcutEvent*>(event)->key())) {
-            // If so, we ask the database widget to check if any of its sub-widgets has text
-            // selected, and to copy it to the clipboard if that is the case. We do this
-            // because that is what the user likely expects to happen, yet Qt does not
-            // behave like that on all platforms.
-            if (databaseWidget->copyFocusedTextSelection()) {
-                // In that case, we return true to stop further processing of this event.
-                return true;
-            }
-        }
-    }
-    return QObject::eventFilter(watched, event);
-}
 
 const QString MainWindow::BaseWindowTitle = "KeePassXC";
 
@@ -223,7 +199,6 @@ MainWindow::MainWindow()
     m_ui->settingsWidget->addSettingsPage(new ShortcutSettingsPage());
 
 #ifdef WITH_XC_BROWSER
-    m_ui->settingsWidget->addSettingsPage(new BrowserSettingsPage());
     connect(
         browserService(), &BrowserService::requestUnlock, m_ui->tabWidget, &DatabaseTabWidget::performBrowserUnlock);
 #endif
@@ -293,7 +268,6 @@ MainWindow::MainWindow()
     connect(m_inactivityTimer, SIGNAL(inactivityDetected()), this, SLOT(lockDatabasesAfterInactivity()));
     applySettingsChanges();
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     // Qt 5.10 introduced a new "feature" to hide shortcuts in context menus
     // Unfortunately, Qt::AA_DontShowShortcutsInContextMenus is broken, have to manually enable them
     m_ui->actionEntryNew->setShortcutVisibleInContextMenu(true);
@@ -315,7 +289,6 @@ MainWindow::MainWindow()
     m_ui->actionEntryCopyTitle->setShortcutVisibleInContextMenu(true);
     m_ui->actionEntryAddToAgent->setShortcutVisibleInContextMenu(true);
     m_ui->actionEntryRemoveFromAgent->setShortcutVisibleInContextMenu(true);
-#endif
 
     connect(m_ui->menuEntries, SIGNAL(aboutToShow()), SLOT(obtainContextFocusLock()));
     connect(m_ui->menuEntries, SIGNAL(aboutToHide()), SLOT(releaseContextFocusLock()));
@@ -665,15 +638,6 @@ MainWindow::MainWindow()
                "Expect some bugs and minor issues, this version is meant for testing purposes."),
             MessageWidget::Information,
             -1);
-    }
-#elif (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0) && QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
-    if (!config()->get(Config::Messages_Qt55CompatibilityWarning).toBool()) {
-        m_ui->globalMessageWidget->showMessage(
-            tr("WARNING: Your Qt version may cause KeePassXC to crash with an On-Screen Keyboard.\n"
-               "We recommend you use the AppImage available on our downloads page."),
-            MessageWidget::Warning,
-            -1);
-        config()->set(Config::Messages_Qt55CompatibilityWarning, true);
     }
 #endif
 
@@ -1405,6 +1369,33 @@ void MainWindow::databaseTabChanged(int tabIndex)
     updateEntryCountLabel();
 }
 
+bool MainWindow::event(QEvent* event)
+{
+    if (event->type() == QEvent::ShortcutOverride) {
+        const auto keyevent = static_cast<QKeyEvent*>(event);
+        // Did we get a ShortcutOverride event with the same key sequence as the OS default
+        // copy-to-clipboard shortcut?
+        if (keyevent->matches(QKeySequence::Copy)) {
+            // If so, we ask the database widget to check if any of its sub-widgets has
+            // text selected, and to copy it to the clipboard if that is the case.
+            // We do this because that is what the user likely expects to happen, yet Qt does not
+            // behave like that (at least on some platforms).
+            auto dbWidget = m_ui->tabWidget->currentDatabaseWidget();
+            if (dbWidget && dbWidget->copyFocusedTextSelection()) {
+                // Note: instead of actively copying the selected text to the clipboard
+                // above, simply accepting the event would have a similar effect (Qt
+                // would deliver it as a key press to the current widget, which would
+                // trigger the built-in copy-to-clipboard behaviour). However, that
+                // would not come with our special (configurable) behaviour of
+                // clearing the clipboard after a certain time period.
+                keyevent->accept();
+                return true;
+            }
+        }
+    }
+    return QMainWindow::event(event);
+}
+
 void MainWindow::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event)
@@ -1490,7 +1481,7 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
         }
     }
 
-    QWidget::keyPressEvent(event);
+    QMainWindow::keyPressEvent(event);
 }
 
 bool MainWindow::focusNextPrevChild(bool next)
@@ -1818,7 +1809,7 @@ void MainWindow::hide()
 {
 #ifndef Q_OS_WIN
     qint64 current_time = Clock::currentMilliSecondsSinceEpoch();
-    if (current_time - m_lastShowTime < 50) {
+    if (current_time - m_lastShowTime < 250) {
         return;
     }
 #endif
@@ -1864,27 +1855,6 @@ void MainWindow::toggleWindow()
         hideWindow();
     } else {
         bringToFront();
-
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS) && !defined(QT_NO_DBUS) && (QT_VERSION < QT_VERSION_CHECK(5, 9, 0))
-        // re-register global D-Bus menu (needed on Ubuntu with Unity)
-        // see https://github.com/keepassxreboot/keepassxc/issues/271
-        // and https://bugreports.qt.io/browse/QTBUG-58723
-        // check for !isVisible(), because isNativeMenuBar() does not work with appmenu-qt5
-        static const auto isDesktopSessionUnity = qgetenv("XDG_CURRENT_DESKTOP") == "Unity";
-
-        if (isDesktopSessionUnity && Tools::qtRuntimeVersion() < QT_VERSION_CHECK(5, 9, 0)
-            && !m_ui->menubar->isVisible()) {
-            QDBusMessage msg = QDBusMessage::createMethodCall(QStringLiteral("com.canonical.AppMenu.Registrar"),
-                                                              QStringLiteral("/com/canonical/AppMenu/Registrar"),
-                                                              QStringLiteral("com.canonical.AppMenu.Registrar"),
-                                                              QStringLiteral("RegisterWindow"));
-            QList<QVariant> args;
-            args << QVariant::fromValue(static_cast<uint32_t>(winId()))
-                 << QVariant::fromValue(QDBusObjectPath("/MenuBar/1"));
-            msg.setArguments(args);
-            QDBusConnection::sessionBus().send(msg);
-        }
-#endif
     }
 }
 
@@ -2019,11 +1989,7 @@ void MainWindow::displayDesktopNotification(const QString& msg, QString title, i
         title = BaseWindowTitle;
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 9, 0)
     m_trayIcon->showMessage(title, msg, icons()->applicationIcon(), msTimeoutHint);
-#else
-    m_trayIcon->showMessage(title, msg, QSystemTrayIcon::Information, msTimeoutHint);
-#endif
 }
 
 void MainWindow::restartApp(const QString& message)
@@ -2235,14 +2201,6 @@ void MainWindow::initActionCollection()
     ac->setDefaultShortcut(m_ui->actionEntryAddToAgent, Qt::META + Qt::Key_H);
     ac->setDefaultShortcut(m_ui->actionEntryRemoveFromAgent, Qt::META + Qt::SHIFT + Qt::Key_H);
 #endif
-
-    // Install an event filter on every action. It improves handling of keyboard
-    // shortcuts that match the system copy-to-clipboard key sequence; by default
-    // this applies to actionEntryCopyPassword, but this could differ based on
-    // shortcuts the user has configured, or may configure later.
-    for (auto action : ac->actions()) {
-        action->installEventFilter(&m_actionEventFilter);
-    }
 
     QTimer::singleShot(1, ac, &ActionCollection::restoreShortcuts);
 }

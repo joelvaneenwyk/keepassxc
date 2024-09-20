@@ -596,6 +596,10 @@
         <source>Hide TOTP in the entry preview panel</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Lock databases when switching user</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>AutoType</name>
@@ -1600,14 +1604,6 @@ To prevent this error from appearing, you must go to &quot;Database Settings / S
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Click to add a key file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;a href=&quot;#&quot; style=&quot;text-decoration: underline&quot;&gt;I have a key file&lt;/a&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Use hardware key [Serial: %1]</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1637,6 +1633,14 @@ Are you sure you want to continue with this file?.</source>
     </message>
     <message>
         <source>Refresh Hardware Keys</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click to add a key file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;a href=&quot;#&quot; style=&quot;text-decoration: underline&quot;&gt;I have a key file&lt;/a&gt;</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1671,6 +1675,14 @@ Are you sure you want to continue with this file?.</source>
     </message>
     <message>
         <source>Maintenance</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>KeeShare</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Secret Service Integration</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3002,15 +3014,7 @@ Would you like to correct it?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Only send this setting to the browser for HTTP Auth dialogs. If enabled, normal login forms will not show this entry for selection.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Use this entry only with HTTP Basic Auth</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Do not send this setting to the browser for HTTP Auth dialogs. If enabled, HTTP Auth dialogs will not show this entry for selection.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3035,6 +3039,14 @@ Would you like to correct it?</source>
     </message>
     <message>
         <source>Additional URLs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only send this entry to the browser for HTTP Auth dialogs. If enabled, normal login forms will not show this entry for selection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Do not send this entry to the browser for HTTP Auth dialogs. If enabled, HTTP Auth dialogs will not show this entry for selection.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -5702,11 +5714,6 @@ Expect some bugs and minor issues, this version is meant for testing purposes.</
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>WARNING: Your Qt version may cause KeePassXC to crash with an On-Screen Keyboard.
-We recommend you use the AppImage available on our downloads page.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>No Tags</source>
         <translation type="unfinished"></translation>
     </message>
@@ -6888,6 +6895,14 @@ Do you want to overwrite it?</source>
         <source>Special Characters</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>passwordLength</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Characters: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>PasswordWidget</name>
@@ -7636,10 +7651,6 @@ Do you want to overwrite it?</source>
     </message>
     <message>
         <source>Invalid word count %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>The word list is too small (&lt; 1000 items)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -8887,6 +8898,21 @@ This option is deprecated, use --set-key-file instead.</source>
         <source>Only PBKDF and Argon2 are supported, cannot decrypt json file</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Cannot generate valid passphrases because the wordlist is too short</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete plugin data?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <source>Delete plugin data from Entry(s)?</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>QtIOCompressor</name>
@@ -9038,6 +9064,13 @@ This option is deprecated, use --set-key-file instead.</source>
         <source> (Expired)</source>
         <translation type="unfinished"></translation>
     </message>
+    <message numerus="yes">
+        <source>Delete plugin data from Entry(s)…</source>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>ReportsWidgetHealthcheck</name>
@@ -9046,26 +9079,11 @@ This option is deprecated, use --set-key-file instead.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Bad</source>
-        <comment>Password quality</comment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Bad — password must be changed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Poor</source>
-        <comment>Password quality</comment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Poor — password should be changed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Weak</source>
-        <comment>Password quality</comment>
         <translation type="unfinished"></translation>
     </message>
     <message>

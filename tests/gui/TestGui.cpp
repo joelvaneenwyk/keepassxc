@@ -54,6 +54,7 @@
 #include "gui/databasekey/KeyFileEditWidget.h"
 #include "gui/databasekey/PasswordEditWidget.h"
 #include "gui/dbsettings/DatabaseSettingsDialog.h"
+#include "gui/dbsettings/DatabaseSettingsWidgetEncryption.h"
 #include "gui/entry/EditEntryWidget.h"
 #include "gui/entry/EntryView.h"
 #include "gui/group/EditGroupWidget.h"
@@ -75,10 +76,8 @@
 
 int main(int argc, char* argv[])
 {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
     Application app(argc, argv);
     app.setApplicationName("KeePassXC");
     app.setApplicationVersion(KEEPASSXC_VERSION);
@@ -355,8 +354,9 @@ void TestGui::testMergeDatabase()
     fileDialog()->setNextFileName(QString(KEEPASSX_TEST_DATA_DIR).append("/MergeDatabase.kdbx"));
     triggerAction("actionDatabaseMerge");
 
-    QTRY_COMPARE(QApplication::focusWidget()->objectName(), QString("passwordEdit"));
     auto* editPasswordMerge = QApplication::focusWidget();
+    QVERIFY(editPasswordMerge);
+    QTRY_COMPARE(editPasswordMerge->objectName(), QString("passwordEdit"));
     QVERIFY(editPasswordMerge->isVisible());
 
     QTest::keyClicks(editPasswordMerge, "a");
@@ -458,8 +458,9 @@ void TestGui::testRemoteSyncDatabaseRequiresPassword()
     // need to process more events as opening with the same key did not work and more events have been fired
     QApplication::processEvents(QEventLoop::WaitForMoreEvents);
 
-    QTRY_COMPARE(QApplication::focusWidget()->objectName(), QString("passwordEdit"));
     auto* editPasswordSync = QApplication::focusWidget();
+    QVERIFY(editPasswordSync);
+    QTRY_COMPARE(editPasswordSync->objectName(), QString("passwordEdit"));
     QVERIFY(editPasswordSync->isVisible());
 
     QTest::keyClicks(editPasswordSync, "b");
@@ -800,32 +801,23 @@ void TestGui::testPasswordEntryEntropy_data()
     QTest::addColumn<QString>("password");
     QTest::addColumn<QString>("expectedStrengthLabel");
 
-    QTest::newRow("Empty password") << ""
-                                    << "Password Quality: Poor";
+    QTest::newRow("Empty password") << "" << "Password Quality: Poor";
 
-    QTest::newRow("Well-known password") << "hello"
-                                         << "Password Quality: Poor";
+    QTest::newRow("Well-known password") << "hello" << "Password Quality: Poor";
 
-    QTest::newRow("Password composed of well-known words.") << "helloworld"
-                                                            << "Password Quality: Poor";
+    QTest::newRow("Password composed of well-known words.") << "helloworld" << "Password Quality: Poor";
 
-    QTest::newRow("Password composed of well-known words with number.") << "password1"
-                                                                        << "Password Quality: Poor";
+    QTest::newRow("Password composed of well-known words with number.") << "password1" << "Password Quality: Poor";
 
-    QTest::newRow("Password out of small character space.") << "D0g.................."
-                                                            << "Password Quality: Poor";
+    QTest::newRow("Password out of small character space.") << "D0g.................." << "Password Quality: Poor";
 
-    QTest::newRow("XKCD, easy substitutions.") << "Tr0ub4dour&3"
-                                               << "Password Quality: Poor";
+    QTest::newRow("XKCD, easy substitutions.") << "Tr0ub4dour&3" << "Password Quality: Poor";
 
-    QTest::newRow("XKCD, word generator.") << "correcthorsebatterystaple"
-                                           << "Password Quality: Weak";
+    QTest::newRow("XKCD, word generator.") << "correcthorsebatterystaple" << "Password Quality: Weak";
 
-    QTest::newRow("Random characters, medium length.") << "YQC3kbXbjC652dTDH"
-                                                       << "Password Quality: Good";
+    QTest::newRow("Random characters, medium length.") << "YQC3kbXbjC652dTDH" << "Password Quality: Good";
 
-    QTest::newRow("Random characters, long.") << "Bs5ZFfthWzR8DGFEjaCM6bGqhmCT4km"
-                                              << "Password Quality: Excellent";
+    QTest::newRow("Random characters, long.") << "Bs5ZFfthWzR8DGFEjaCM6bGqhmCT4km" << "Password Quality: Excellent";
 
     QTest::newRow("Long password using Zxcvbn chunk estimation")
         << "quintet-tamper-kinswoman-humility-vengeful-haven-tastiness-aspire-widget-ipad-cussed-reaffirm-ladylike-"
@@ -895,6 +887,7 @@ void TestGui::testPasswordEntryEntropy()
             pwGeneratorWidget->findChild<PasswordWidget*>("editNewPassword")->findChild<QLineEdit*>("passwordEdit");
         auto* entropyLabel = pwGeneratorWidget->findChild<QLabel*>("entropyLabel");
         auto* strengthLabel = pwGeneratorWidget->findChild<QLabel*>("strengthLabel");
+        auto* passwordLengthLabel = pwGeneratorWidget->findChild<QLabel*>("passwordLengthLabel");
 
         QFETCH(QString, password);
         QFETCH(QString, expectedStrengthLabel);
@@ -902,10 +895,12 @@ void TestGui::testPasswordEntryEntropy()
         // Dynamically calculate entropy due to variances with zxcvbn wordlists
         PasswordHealth health(password);
         auto expectedEntropy = QString("Entropy: %1 bit").arg(QString::number(health.entropy(), 'f', 2));
+        auto expectedPasswordLength = QString("Characters: %1").arg(QString::number(password.length()));
 
         generatedPassword->setText(password);
         QCOMPARE(entropyLabel->text(), expectedEntropy);
         QCOMPARE(strengthLabel->text(), expectedStrengthLabel);
+        QCOMPARE(passwordLengthLabel->text(), expectedPasswordLength);
 
         QTest::mouseClick(generatedPassword, Qt::LeftButton);
         QTest::keyClick(generatedPassword, Qt::Key_Escape););
@@ -1540,18 +1535,14 @@ void TestGui::testSaveBackupPath_data()
 
     QTest::newRow("Absolute backup path") << tmpFile.fileName() << tmpFile.fileName();
     // relative paths should be resolved to database parent directory
-    QTest::newRow("Relative backup path (implicit)") << "other_dir/test.old.kdbx"
-                                                     << "other_dir/test.old.kdbx";
-    QTest::newRow("Relative backup path (explicit)") << "./other_dir2/test2.old.kdbx"
-                                                     << "other_dir2/test2.old.kdbx";
+    QTest::newRow("Relative backup path (implicit)") << "other_dir/test.old.kdbx" << "other_dir/test.old.kdbx";
+    QTest::newRow("Relative backup path (explicit)") << "./other_dir2/test2.old.kdbx" << "other_dir2/test2.old.kdbx";
 
-    QTest::newRow("Path with placeholders") << "{DB_FILENAME}.old.kdbx"
-                                            << "KeePassXC.old.kdbx";
+    QTest::newRow("Path with placeholders") << "{DB_FILENAME}.old.kdbx" << "KeePassXC.old.kdbx";
     // empty path should be replaced with default pattern
     QTest::newRow("Empty path") << QString("") << config()->getDefault(Config::BackupFilePathPattern).toString();
     // {DB_FILENAME} should be replaced with database filename
-    QTest::newRow("") << "{DB_FILENAME}_.old.kdbx"
-                      << "{DB_FILENAME}_.old.kdbx";
+    QTest::newRow("") << "{DB_FILENAME}_.old.kdbx" << "{DB_FILENAME}_.old.kdbx";
 }
 
 void TestGui::testSaveBackupPath()
@@ -1603,7 +1594,7 @@ void TestGui::testDatabaseSettings()
     int autosaveDelayTestValue = 2;
 
     dbSettingsCategoryList->setCurrentCategory(1); // go into security category
-    auto securityTabWidget = dbSettingsStackedWidget->findChild<QTabWidget*>();
+    auto securityTabWidget = dbSettingsStackedWidget->findChild<QTabWidget*>("securityTabWidget");
     QCOMPARE(securityTabWidget->currentIndex(), 0);
 
     // Interact with the password edit option

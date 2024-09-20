@@ -39,7 +39,7 @@ void PasskeyImporter::importPasskey(QSharedPointer<Database>& database, Entry* e
 {
     auto filter = QString("%1 (*.passkey);;%2 (*)").arg(tr("Passkey file"), tr("All files"));
     auto fileName =
-        fileDialog()->getOpenFileName(nullptr, tr("Open passkey file"), FileDialog::getLastDir("passkey"), filter);
+        fileDialog()->getOpenFileName(m_parent, tr("Open passkey file"), FileDialog::getLastDir("passkey"), filter);
     if (fileName.isEmpty()) {
         return;
     }
@@ -68,13 +68,9 @@ void PasskeyImporter::importSelectedFile(QFile& file, QSharedPointer<Database>& 
     }
 
     const auto privateKey = passkeyObject["privateKey"].toString();
-    const auto missingKeys = Tools::getMissingValuesFromList<QString>(passkeyObject.keys(),
-                                                                      QStringList() << "relyingParty"
-                                                                                    << "url"
-                                                                                    << "username"
-                                                                                    << "credentialId"
-                                                                                    << "userHandle"
-                                                                                    << "privateKey");
+    const auto missingKeys = Tools::getMissingValuesFromList<QString>(
+        passkeyObject.keys(),
+        QStringList() << "relyingParty" << "url" << "username" << "credentialId" << "userHandle" << "privateKey");
     if (!missingKeys.isEmpty()) {
         MessageBox::information(m_parent,
                                 tr("Cannot import passkey"),

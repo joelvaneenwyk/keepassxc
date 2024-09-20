@@ -77,7 +77,6 @@ namespace Tools
 #endif
         debugInfo.append("\n");
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
         debugInfo.append(QObject::tr("Operating system: %1\nCPU architecture: %2\nKernel: %3 %4")
                              .arg(QSysInfo::prettyProductName(),
                                   QSysInfo::currentCpuArchitecture(),
@@ -85,7 +84,6 @@ namespace Tools
                                   QSysInfo::kernelVersion()));
 
         debugInfo.append("\n\n");
-#endif
 
         QString extensions;
 #ifdef WITH_XC_AUTOTYPE
@@ -126,10 +124,7 @@ namespace Tools
         constexpr auto kibibyte = 1024;
         double size = bytes;
 
-        QStringList units = QStringList() << "B"
-                                          << "KiB"
-                                          << "MiB"
-                                          << "GiB";
+        QStringList units = QStringList() << "B" << "KiB" << "MiB" << "GiB";
         int i = 0;
         int maxI = units.size() - 1;
 
@@ -451,33 +446,32 @@ namespace Tools
 
     QString substituteBackupFilePath(QString pattern, const QString& databasePath)
     {
-        // Fail if substitution fails
         if (databasePath.isEmpty()) {
             return {};
         }
 
-        // Replace backup pattern
-        QFileInfo dbFileInfo(databasePath);
-        QString baseName = dbFileInfo.completeBaseName();
+        const QString baseName = QFileInfo{databasePath}.completeBaseName();
 
-        pattern.replace(QString("{DB_FILENAME}"), baseName);
+        pattern.replace(QStringLiteral("{DB_FILENAME}"), baseName);
 
-        auto re = QRegularExpression(R"(\{TIME(?::([^\\]*))?\})");
+        const QDateTime now = Clock::currentDateTime();
+
+        const QRegularExpression re(R"(\{TIME(?::([^\\{}]*))?\})");
         auto match = re.match(pattern);
         while (match.hasMatch()) {
-            // Extract time format specifier
-            auto formatSpecifier = QString("dd_MM_yyyy_hh-mm-ss");
+            // Extract time format specifier, or use default value if absent
+            QString formatSpecifier = "dd_MM_yyyy_hh-mm-ss";
             if (!match.captured(1).isEmpty()) {
                 formatSpecifier = match.captured(1);
             }
-            auto replacement = Clock::currentDateTime().toString(formatSpecifier);
+            const auto replacement = now.toString(formatSpecifier);
             pattern.replace(match.capturedStart(), match.capturedLength(), replacement);
             match = re.match(pattern);
         }
 
         // Replace escaped braces
-        pattern.replace("\\{", "{");
-        pattern.replace("\\}", "}");
+        pattern.replace(QStringLiteral("\\{"), QStringLiteral("{"));
+        pattern.replace(QStringLiteral("\\}"), QStringLiteral("}"));
 
         return pattern;
     }

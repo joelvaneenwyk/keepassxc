@@ -20,6 +20,7 @@
 
 #include "core/Config.h"
 #include "core/Database.h"
+#include "core/Global.h"
 #include "core/Group.h"
 #include "core/Metadata.h"
 #include "core/PasswordHealth.h"
@@ -292,7 +293,7 @@ QString Entry::effectiveAutoTypeSequence() const
 
 /**
  * Retrieve the Auto-Type sequences matches for a given windowTitle
- * This returns a list with priority ordering. If you don't want duplicates call .toSet() on it.
+ * This returns a list with priority ordering. If you don't want duplicates, convert it to a QSet<QString>.
  */
 QList<QString> Entry::autoTypeSequences(const QString& windowTitle) const
 {
@@ -442,7 +443,7 @@ int Entry::size() const
     size += autoTypeAssociations()->associationsSize();
     size += attachments()->attachmentsSize();
     size += customData()->dataSize();
-    for (const QString& tag : tags().split(TagDelimiterRegex, QString::SkipEmptyParts)) {
+    for (const QString& tag : tags().split(TagDelimiterRegex, Qt::SkipEmptyParts)) {
         size += tag.toUtf8().size();
     }
 
@@ -596,6 +597,11 @@ void Entry::updateTotp()
                                                   m_attributes->value(Totp::ATTRIBUTE_SEED));
     } else if (m_attributes->contains(Totp::ATTRIBUTE_OTP)) {
         m_data.totpSettings = Totp::parseSettings(m_attributes->value(Totp::ATTRIBUTE_OTP));
+    } else if (m_attributes->contains(Totp::KP2_TOTP_SECRET)) {
+        m_data.totpSettings = Totp::fromKeePass2Totp(m_attributes->value(Totp::KP2_TOTP_SECRET),
+                                                     m_attributes->value(Totp::KP2_TOTP_ALGORITHM),
+                                                     m_attributes->value(Totp::KP2_TOTP_LENGTH),
+                                                     m_attributes->value(Totp::KP2_TOTP_PERIOD));
     } else {
         m_data.totpSettings.reset();
     }
@@ -671,14 +677,13 @@ void Entry::setOverrideUrl(const QString& url)
 
 void Entry::setTags(const QString& tags)
 {
-    auto taglist = tags.split(TagDelimiterRegex, QString::SkipEmptyParts);
+    auto taglist = tags.split(TagDelimiterRegex, Qt::SkipEmptyParts);
     // Trim whitespace before/after tag text
     for (auto& tag : taglist) {
         tag = tag.trimmed();
     }
     // Remove duplicates
-    auto tagSet = QSet<QString>::fromList(taglist);
-    taglist = tagSet.toList();
+    taglist = Tools::asSet(taglist).values();
     // Sort alphabetically
     taglist.sort();
     set(m_data.tags, taglist);
@@ -802,8 +807,19 @@ void Entry::addHistoryItem(Entry* entry)
 {
     Q_ASSERT(!entry->parent());
 
+    entry->setHistoryOwner(this);
     m_history.append(entry);
     emitModified();
+}
+
+void Entry::setHistoryOwner(Entry* entry)
+{
+    m_historyOwner = entry;
+}
+
+Entry* Entry::historyOwner() const
+{
+    return m_historyOwner;
 }
 
 void Entry::removeHistoryItems(const QList<Entry*>& historyEntries)

@@ -135,6 +135,7 @@ static const QHash<Config::ConfigKey, ConfigDirective> configStrings = {
     {Config::Security_LockDatabaseIdleSeconds, {QS("Security/LockDatabaseIdleSeconds"), Roaming, 240}},
     {Config::Security_LockDatabaseMinimize, {QS("Security/LockDatabaseMinimize"), Roaming, false}},
     {Config::Security_LockDatabaseScreenLock, {QS("Security/LockDatabaseScreenLock"), Roaming, true}},
+    {Config::Security_LockDatabaseOnUserSwitch, {QS("Security/LockDatabaseOnUserSwitch"), Roaming, true}},
     {Config::Security_RelockAutoType, {QS("Security/RelockAutoType"), Roaming, false}},
     {Config::Security_PasswordsHidden, {QS("Security/PasswordsHidden"), Roaming, true}},
     {Config::Security_PasswordEmptyPlaceholder, {QS("Security/PasswordEmptyPlaceholder"), Roaming, false}},
@@ -219,7 +220,6 @@ static const QHash<Config::ConfigKey, ConfigDirective> configStrings = {
 
     // Messages
     {Config::Messages_NoLegacyKeyFileWarning, {QS("Messages/NoLegacyKeyFileWarning"), Roaming, false}},
-    {Config::Messages_Qt55CompatibilityWarning, {QS("Messages/Qt55CompatibilityWarning"), Local, false}},
     {Config::Messages_HidePreReleaseWarning, {QS("Messages/HidePreReleaseWarning"), Local, {}}}};
 
 // clang-format on
@@ -360,7 +360,7 @@ static const QHash<QString, Config::ConfigKey> deprecationMap = {
     {QS("generator/WordList"), Config::PasswordGenerator_WordList},
     {QS("generator/WordCase"), Config::PasswordGenerator_WordCase},
     {QS("generator/Type"), Config::PasswordGenerator_Type},
-    {QS("QtErrorMessageShown"), Config::Messages_Qt55CompatibilityWarning},
+    {QS("QtErrorMessageShown"), Config::Deleted},
     {QS("GUI/HidePasswords"), Config::Deleted},
     {QS("GUI/DarkTrayIcon"), Config::Deleted},
 

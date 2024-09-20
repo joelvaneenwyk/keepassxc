@@ -17,7 +17,7 @@ The KeePassXC-Browser extension is available on the following web browsers:
 You can download the KeePassXC-Browser extension from your web browser. To download the KeePassXC-Browser extension, perform the following steps:
 
 1. Click the link corresponding to your browser:
-  * https://chrome.google.com/webstore/detail/keepassxc-browser/oboonakemofpalcgghocfoadofidjkkk[Chrome, Chromium, Vivaldi, and Brave]
+  * https://chromewebstore.google.com/detail/keepassxc-browser/oboonakemofpalcgghocfoadofidjkkk[Chrome, Chromium, Vivaldi, and Brave]
   * https://addons.mozilla.org/en-US/firefox/addon/keepassxc-browser[Mozilla Firefox and Tor-Browser]
   * https://microsoftedge.microsoft.com/addons/detail/keepassxcbrowser/pdffhmdngciaglkoonimfcmckehcpafo[Microsoft Edge]
 
@@ -66,9 +66,10 @@ The KeePassXC-Browser extension lets you automatically populate the entries from
 
 2. Open your web browser. The KeePassXC-Browser extension icon in your browser window will change based on its connection state. The figure below shows the different states.
 +
-*(A)* KeePassXC is not running or is disconnected +
-*(B)* Connected to KeePassXC, but database is locked +
-*\(C)* Connected to KeePassXC and ready to use
+*(A)* KeePassXC is not running or is disconnected. +
+*(B)* KeePassXC is running, but KeePassXC Browser Extension is not connected to the current database. +
+*\(C)* Connected to KeePassXC, but database is locked. +
+*(D)* Connected to KeePassXC and ready to use. If the icon is shown with a number, it indicates the number of credentials found for the current site.
 +
 .Extension Icon States
 image::browser_extension_icons.png[,70%]
@@ -89,6 +90,20 @@ image::browser_confirm_access_dialog.png[,80%]
 +
 .Fill Credentials
 image::browser_fill_credentials.png[,80%]
+
+=== Generate Passwords
+
+The KeePassXC-Browser Extension also lets you generate passwords directly in your browser. 
+This feature can be used for websites with existing credentials as well as for new websites. 
+You can then choose to update/add the credentials to your KeePassXC database directly from the Browser.
+
+1. Ensure your database is unlocked and configured to use the Browser extension as shown above.
+
+2. Right click on a password field and from the KeePassXC sub-menu choose _Show Password Generator_. The standard KeePassXC password generator will appear.
+
+3. Configure the password generation options and click _Apply Password_ when done. The generated password will be filled into the previously selected field.
+
+4. When you have successfully submitted the password on the website, a popup will appear asking you to either update an existing entry or add a new one.
 
 // tag::advanced[]
 === Browser statistics
@@ -123,6 +138,23 @@ WARNING: We do not recommend changing any of these settings as they may break th
 image::browser_advanced_settings.png[]
 
 === Advanced Setup
+
+==== Custom Browser option
+
+It is possible to enable support for a custom browser (e.g. LibreWolf, WaterFox, Arc, beta and nightly browsers, etc.) using this feature.
+This feature is only available for Linux and macOS.
+
+.Custom browser configuration
+image::browser_custom_browser_configuration.png[]
+
+The native messaging script file needed for the custom browser depends on the browser type. For Firefox based browsers like Librefox the _Browser type_ must be _Firefox_. For Arc, Opera, etc. the type must be set to _Chromium_.
+
+_Config location_ must have the exact path for the browser's _native-messaging-hosts_ folder. If you are unsure, refer to our https://github.com/keepassxreboot/keepassxc-browser/wiki/Troubleshooting-guide#1-after-enabling-browser-integration-and-support-for-your-browser[Troubleshooting Guide] for listing of the most common paths, and a few ways for finding a path when it's not known.
+
+When a Custom Browser has been successfully set, KeePassXC will automatically write the needed native messaging script file to the folder.
+
+If you wish to support multiple custom browsers, you can copy the native messaging script files manually to the _native-messaging-hosts_ folder from other browsers.
+
 ==== Managed Microsoft Edge on Windows
 1. Deploy *org.keepassxc.keepassxc_browser_edge.json* to, for example, `C:\ProgramData\KeepassXC` on all managed platforms.
 +
