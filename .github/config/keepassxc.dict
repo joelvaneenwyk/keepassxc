@@ -14,6 +14,7 @@ ASAN
 asciidoctor
 ASLR
 assetcache
+astextplain
 Aurélien
 Authenticode
 autobuild
@@ -21,6 +22,7 @@ Autobuild
 azurl
 Bahasa
 berkeleydb
+bibtex
 Bilke
 bitwarden
 bname
@@ -62,6 +64,7 @@ dylib
 eesti
 Ekvd
 endlocal
+epub
 ERRORLEVEL
 euskara
 FDOSECRETS
@@ -132,6 +135,7 @@ locationbar
 louib
 LSAN
 lupdate
+lzma
 macextras
 Makefiles
 mandb
@@ -165,6 +169,7 @@ Papp
 perc
 phoerious
 PICKCHARS
+pixi
 polski
 Português
 pthread
@@ -184,6 +189,7 @@ Sato
 scannerwork
 screencapture
 scrollbars
+Serialisation
 setlocal
 signtool
 Signtool

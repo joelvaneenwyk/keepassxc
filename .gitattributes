@@ -115,3 +115,5 @@ release-tool.ps1                text eol=lf
 # binary files
 *.ai                            binary
 
+# GitHub syntax highlighting
+pixi.lock linguist-language=YAML linguist-generated=true

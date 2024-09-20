@@ -33,3 +33,8 @@ vcpkg_installed*/
 .build/
 .task/
 .git/
+.venv/
+
+# pixi environments
+.pixi/
+*.egg-info
